@@ -47,7 +47,7 @@ options
 {
 }
 
-startRule  : (initialization)*;
+startRule  : (initialization | forCycle | ifStat)*;
 initialization :
     //var float: Float = ...
     VAR ID COLON FLOAT ASSIGN
@@ -60,8 +60,31 @@ initialization :
     {
         sout("\t\tint " + $ID.text + " = ")
     }
-    rightIntValue
-    ;
+    rightIntValue;
+
+
+forCycle :
+    //for _ in 1...n {
+    FOR i=ID IN (a=INT|a=ID) RANGE (b=INT|b=ID) LCURBR
+    {
+        sout("\t\tfor (int " + $i.text + " = " + $a.text + "; " + $i.text + " <= " + $b.text + "; " + $i.text + "++) {\n\t\t\t");
+    }
+    (initialization | varChange | printCom | forCycle | ifStat | breakRule | )*
+    RCURBR
+    {
+        sout("\t\t}");
+    }
+    |
+    //for _ in 1..<n {
+    FOR i=ID IN (a=INT|a=ID) RANGEB (b=INT|b=ID) LCURBR
+    {
+        sout("\t\tfor (int " + $i.text + " = " + $a.text + "; " + $i.text + " < " + $b.text + "; " + $i.text + "++) {\n\t\t\t");
+    }
+    (initialization | varChange | printCom | forCycle | ifStat | breakRule | )*
+    RCURBR
+    {
+        sout("\t\t}");
+    };
 
 rightFloatValue :
     //... 1.0 + 2 + abc...
@@ -101,10 +124,12 @@ MOD     : '%';
 QUEST   : '?';
 COLON   : ':';
 SCOLON  : ';';
+RANGE   : '...';
+RANGEB  : '..<';
 
 
 //Identifiers
-ID : [a-zA-Z]+ {};
+ID : [a-zA-Z_]+ {};
 
 //Literals
 fragment DIGIT : [0-9] ; // not a token by itself
