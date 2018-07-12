@@ -7,6 +7,8 @@ options
 
 @parser::header
 {
+    import java.util.*;
+    import javax.management.openmbean.KeyAlreadyExistsException;
 }
 
 @parser::members
@@ -14,6 +16,19 @@ options
 	static String prefixCodeGen = "public class Main\n{\n\tpublic static void main(String args[]){\n";
 
     static String suffixCodeGen = "\t}\n}";
+
+    static Map<String, String> table = new HashMap<>();
+
+    static ArrayList<String> reservedNames = new ArrayList<String>(
+                           Arrays.asList("abstract", "assert", "boolean", "break", "byte", "case",
+                                   "catch", "char", "class", "const", "continue", "default", "double", "do", "else", "enum",
+                                   "extends", "false",
+                           "final", "finally", "float", "for", "goto", "if",
+                           "implements", "import", "instanceof", "int", "interface", "long",
+                           "native", "new", "null", "package", "private", "protected",
+                           "public", "return", "short", "static", "strictfp", "super",
+                           "switch", "synchronized", "this", "throw", "throws", "transient",
+                           "true", "try", "void", "volatile", "while"));
 
 //    public static void main(String args[]){
 //        CharStream input = CharStreams.fromStream(System.in);
@@ -43,11 +58,10 @@ options
 {
 }
 
-//TODO: Проверка на то, что ID второй раз не объявляется
-//TODO: Проверка на совпадение типов
 //TODO: Проверка на то, что такой ID существует
 //TODO: Выводить код не в консоль, а в файл
 //TODO: Проверка на то, что имя переменной не зарезервировано
+//TODO: Подсчет табов
 
 
 startRule  : (initialization | forCycle | ifStatAverage | varChange | printCom)*;
@@ -55,12 +69,25 @@ initialization :
     //var float: Float = ...
     VAR ID COLON FLOAT ASSIGN
     {
+        if (table.containsKey($ID.text)) {
+            throw new KeyAlreadyExistsException("Line: " + getContext().start.getLine() +
+                                                ": variable " + $ID.text + " is already assigned!");
+        }
+        if (reservedNames.contains($ID.text))
+            table.put("_" + $ID.text, "float");
+        else
+            table.put($ID.text, "float");
         sout("\t\tfloat " + $ID.text + " = ");
     }
     floatValue {sout(";\n");}
     |
     VAR ID COLON INTEGER ASSIGN
     {
+        if (table.containsKey($ID.text)) {
+                    throw new KeyAlreadyExistsException("Line: " + getContext().start.getLine() +
+                                                        ": variable " + $ID.text + " is already assigned!");
+        }
+        table.put($ID.text, "int");
         sout("\t\tint " + $ID.text + " = ");
     }
     intValue {sout(";\n");};

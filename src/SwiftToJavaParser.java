@@ -1,5 +1,7 @@
 // Generated from /home/alena/IdeaProjects/practice/src/SwiftToJava.g4 by ANTLR 4.7
 
+    import java.util.*;
+    import javax.management.openmbean.KeyAlreadyExistsException;
 
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
@@ -96,24 +98,33 @@ public class SwiftToJavaParser extends Parser {
 
 	    static String suffixCodeGen = "\t}\n}";
 
-	    public static void main(String args[]){
-	//        // create a CharStream that reads from standard input
-	//        ANTLRInputStream input = new ANTLRInputStream(System.in);
+	    static Map<String, String> table = new HashMap<>();
+
+	    static ArrayList<String> reservedNames = new ArrayList<String>(
+	                           Arrays.asList("abstract", "assert", "boolean", "break", "byte", "case",
+	                                   "catch", "char", "class", "const", "continue", "default", "double", "do", "else", "enum",
+	                                   "extends", "false",
+	                           "final", "finally", "float", "for", "goto", "if",
+	                           "implements", "import", "instanceof", "int", "interface", "long",
+	                           "native", "new", "null", "package", "private", "protected",
+	                           "public", "return", "short", "static", "strictfp", "super",
+	                           "switch", "synchronized", "this", "throw", "throws", "transient",
+	                           "true", "try", "void", "volatile", "while"));
+
+	//    public static void main(String args[]){
+	//        CharStream input = CharStreams.fromStream(System.in);
 	//        // create a lexer that feeds off of input CharStream
-	//        ArrayInitLexer lexer = new ArrayInitLexer(input);
+	//        SwiftToJavaLexer lexer = new SwiftToJavaLexer(input);
 	//        // create a buffer of tokens pulled from the lexer
-	//        CommonTokenStream tokens = new CommonTokenStream(lexer);
+	//        CommonTokenStream tokens = new CommonTokenStream((TokenSource) lexer);
 	//        // create a parser that feeds off the tokens buffer
-	//        ArrayInitParser parser = new ArrayInitParser(tokens);
+	//        SwiftToJavaParser parser = new SwiftToJavaParser(tokens);
 	//
 	//        sout(prefixCodeGen);
-	//        ParseTree tree = parser.init();
+	//        ParseTree tree = parser.startRule();
 	//        sout(suffixCodeGen);
-
-	        // begin parsing at init rule
-	        // print LISP-style tree
-	        //System.out.println(tree.toStringTree(parser));
-	    }
+	//
+	//    }
 
 	    public static void sout(String str){
 	        System.out.print(str);
@@ -165,11 +176,6 @@ public class SwiftToJavaParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof SwiftToJavaListener ) ((SwiftToJavaListener)listener).exitStartRule(this);
-		}
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof SwiftToJavaVisitor ) return ((SwiftToJavaVisitor<? extends T>)visitor).visitStartRule(this);
-			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -265,11 +271,6 @@ public class SwiftToJavaParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof SwiftToJavaListener ) ((SwiftToJavaListener)listener).exitInitialization(this);
 		}
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof SwiftToJavaVisitor ) return ((SwiftToJavaVisitor<? extends T>)visitor).visitInitialization(this);
-			else return visitor.visitChildren(this);
-		}
 	}
 
 	public final InitializationContext initialization() throws RecognitionException {
@@ -293,6 +294,14 @@ public class SwiftToJavaParser extends Parser {
 				setState(38);
 				match(ASSIGN);
 
+				        if (table.containsKey((((InitializationContext)_localctx).ID!=null?((InitializationContext)_localctx).ID.getText():null))) {
+				            throw new KeyAlreadyExistsException("Line: " + getContext().start.getLine() +
+				                                                ": variable " + (((InitializationContext)_localctx).ID!=null?((InitializationContext)_localctx).ID.getText():null) + " is already assigned!");
+				        }
+				        if (reservedNames.contains((((InitializationContext)_localctx).ID!=null?((InitializationContext)_localctx).ID.getText():null)))
+				            table.put("_" + (((InitializationContext)_localctx).ID!=null?((InitializationContext)_localctx).ID.getText():null), "float");
+				        else
+				            table.put((((InitializationContext)_localctx).ID!=null?((InitializationContext)_localctx).ID.getText():null), "float");
 				        sout("\t\tfloat " + (((InitializationContext)_localctx).ID!=null?((InitializationContext)_localctx).ID.getText():null) + " = ");
 				    
 				setState(40);
@@ -314,6 +323,11 @@ public class SwiftToJavaParser extends Parser {
 				setState(47);
 				match(ASSIGN);
 
+				        if (table.containsKey((((InitializationContext)_localctx).ID!=null?((InitializationContext)_localctx).ID.getText():null))) {
+				                    throw new KeyAlreadyExistsException("Line: " + getContext().start.getLine() +
+				                                                        ": variable " + (((InitializationContext)_localctx).ID!=null?((InitializationContext)_localctx).ID.getText():null) + " is already assigned!");
+				        }
+				        table.put((((InitializationContext)_localctx).ID!=null?((InitializationContext)_localctx).ID.getText():null), "int");
 				        sout("\t\tint " + (((InitializationContext)_localctx).ID!=null?((InitializationContext)_localctx).ID.getText():null) + " = ");
 				    
 				setState(49);
@@ -355,11 +369,6 @@ public class SwiftToJavaParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof SwiftToJavaListener ) ((SwiftToJavaListener)listener).exitVarChange(this);
-		}
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof SwiftToJavaVisitor ) return ((SwiftToJavaVisitor<? extends T>)visitor).visitVarChange(this);
-			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -453,11 +462,6 @@ public class SwiftToJavaParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof SwiftToJavaListener ) ((SwiftToJavaListener)listener).exitForCycle(this);
-		}
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof SwiftToJavaVisitor ) return ((SwiftToJavaVisitor<? extends T>)visitor).visitForCycle(this);
-			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -672,11 +676,6 @@ public class SwiftToJavaParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof SwiftToJavaListener ) ((SwiftToJavaListener)listener).exitIfStatAverage(this);
-		}
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof SwiftToJavaVisitor ) return ((SwiftToJavaVisitor<? extends T>)visitor).visitIfStatAverage(this);
-			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -950,11 +949,6 @@ public class SwiftToJavaParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof SwiftToJavaListener ) ((SwiftToJavaListener)listener).exitIfStatCycle(this);
-		}
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof SwiftToJavaVisitor ) return ((SwiftToJavaVisitor<? extends T>)visitor).visitIfStatCycle(this);
-			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -1237,11 +1231,6 @@ public class SwiftToJavaParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof SwiftToJavaListener ) ((SwiftToJavaListener)listener).exitPrintCom(this);
 		}
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof SwiftToJavaVisitor ) return ((SwiftToJavaVisitor<? extends T>)visitor).visitPrintCom(this);
-			else return visitor.visitChildren(this);
-		}
 	}
 
 	public final PrintComContext printCom() throws RecognitionException {
@@ -1352,11 +1341,6 @@ public class SwiftToJavaParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof SwiftToJavaListener ) ((SwiftToJavaListener)listener).exitPossibleBlocks(this);
 		}
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof SwiftToJavaVisitor ) return ((SwiftToJavaVisitor<? extends T>)visitor).visitPossibleBlocks(this);
-			else return visitor.visitChildren(this);
-		}
 	}
 
 	public final PossibleBlocksContext possibleBlocks() throws RecognitionException {
@@ -1445,11 +1429,6 @@ public class SwiftToJavaParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof SwiftToJavaListener ) ((SwiftToJavaListener)listener).exitBoolForm(this);
-		}
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof SwiftToJavaVisitor ) return ((SwiftToJavaVisitor<? extends T>)visitor).visitBoolForm(this);
-			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -1586,11 +1565,6 @@ public class SwiftToJavaParser extends Parser {
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof SwiftToJavaListener ) ((SwiftToJavaListener)listener).exitBreakRule(this);
 		}
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof SwiftToJavaVisitor ) return ((SwiftToJavaVisitor<? extends T>)visitor).visitBreakRule(this);
-			else return visitor.visitChildren(this);
-		}
 	}
 
 	public final BreakRuleContext breakRule() throws RecognitionException {
@@ -1680,11 +1654,6 @@ public class SwiftToJavaParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof SwiftToJavaListener ) ((SwiftToJavaListener)listener).exitFloatValue(this);
-		}
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof SwiftToJavaVisitor ) return ((SwiftToJavaVisitor<? extends T>)visitor).visitFloatValue(this);
-			else return visitor.visitChildren(this);
 		}
 	}
 
@@ -1905,11 +1874,6 @@ public class SwiftToJavaParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof SwiftToJavaListener ) ((SwiftToJavaListener)listener).exitIntValue(this);
-		}
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof SwiftToJavaVisitor ) return ((SwiftToJavaVisitor<? extends T>)visitor).visitIntValue(this);
-			else return visitor.visitChildren(this);
 		}
 	}
 

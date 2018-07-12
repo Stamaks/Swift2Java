@@ -7,6 +7,8 @@ options
 
 @parser::header
 {
+    import java.util.*;
+    import javax.management.openmbean.KeyAlreadyExistsException;
 }
 
 @parser::members
@@ -14,6 +16,10 @@ options
 	static String prefixCodeGen = "public class Main\n{\n\tpublic static void main(String args[]){\n";
 
     static String suffixCodeGen = "\t}\n}";
+
+    static Map<String, String> table = new HashMap<>();
+
+    public int line = 0;
 
 //    public static void main(String args[]){
 //        CharStream input = CharStreams.fromStream(System.in);
@@ -47,6 +53,8 @@ options
 //TODO: Проверка на совпадение типов
 //TODO: Проверка на то, что такой ID существует
 //TODO: Выводить код не в консоль, а в файл
+//TODO: Проверка на то, что имя переменной не зарезервировано
+//TODO: Подсчет табов
 
 
 startRule  : (initialization | forCycle | ifStatAverage | varChange | printCom)*;
@@ -55,6 +63,11 @@ initialization :
     VAR ID COLON FLOAT ASSIGN
     {
         sout("\t\tfloat " + $ID.text + " = ");
+        if (table.containsKey($ID.text)) {
+            throw new Exception("Line: " + getContext().start.getLine() +
+                                                ": variable " + $ID.text + " is already assigned!");
+        }
+        table.put($ID.text, "float");
     }
     floatValue {sout(";\n");}
     |

@@ -1,7 +1,9 @@
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
 
+import javax.management.openmbean.KeyAlreadyExistsException;
 import java.io.IOException;
+import java.util.*;
 
 /**
  * Created by alena on 12.07.18.
@@ -22,12 +24,8 @@ public class Main
         // create a parser that feeds off the tokens buffer
         SwiftToJavaParser parser = new SwiftToJavaParser(tokens);
 
-        sout(prefixCodeGen);
+        System.out.println(prefixCodeGen);
         ParseTree tree = parser.startRule();
-        sout(suffixCodeGen);
-    }
-
-    public static void sout(String str){
-        System.out.print(str);
+        System.out.println(suffixCodeGen);
     }
 }
