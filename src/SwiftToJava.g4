@@ -53,7 +53,7 @@ options
 //TODO: Выводить код не в консоль, а в файл
 
 
-startRule  : (initialization | forCycle | ifStatAverage)*;
+startRule  : (initialization | forCycle | ifStatAverage | varChange | printCom)*;
 initialization :
     //var float: Float = ...
     VAR ID COLON FLOAT ASSIGN
@@ -66,7 +66,7 @@ initialization :
     {
         sout("\t\tint " + $ID.text + " = ")
     }
-    intValue {sout(";\n")};
+    intValue {sout(";\n")}; 
 
 
 varChange:
