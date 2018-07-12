@@ -11,17 +11,31 @@ options
 
 @parser::members
 {
-	static String prefixCodeGen =
-	@"public class Main
-    {
-        public static void main(String args[]){
-    ";
+	static String prefixCodeGen = "public class Main\n{\n\tpublic static void main(String args[]){\n";
 
-    static String suffixCodeGen =
-    @"
-            }
+    static String suffixCodeGen = "\t}\n}";
+
+    public static void main(String args[]){
+        // create a CharStream that reads from standard input
+        ANTLRInputStream input = new ANTLRInputStream(System.in);
+        // create a lexer that feeds off of input CharStream
+        ArrayInitLexer lexer = new ArrayInitLexer(input);
+        // create a buffer of tokens pulled from the lexer
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        // create a parser that feeds off the tokens buffer
+        ArrayInitParser parser = new ArrayInitParser(tokens);
+
+        sout(prefixCodeGen);
+        ParseTree tree = parser.init();
+        sout(suffixCodeGen);
+        // begin parsing at init rule
+        // print LISP-style tree
+        //System.out.println(tree.toStringTree(parser));
     }
-    ";
+
+    public static void sout(String str){
+        System.out.println(str);
+    }
 }
 //Reserved words
 VAR   : 'var';
