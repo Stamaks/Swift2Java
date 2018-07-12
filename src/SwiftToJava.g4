@@ -50,10 +50,10 @@ options
 //TODO: Проверка на то, что ID второй раз не объявляется
 //TODO: Проверка на совпадение типов
 //TODO: Проверка на то, что такой ID существует
-//TODO: переименовать RightFloatValue, убрать ; и переставить в саму функцию
+//TODO: Выводить код не в консоль, а в файл
 
 
-startRule  : (initialization | forCycle | ifStat)*;
+startRule  : (initialization | forCycle | ifStatAverage)*;
 initialization :
     //var float: Float = ...
     VAR ID COLON FLOAT ASSIGN
@@ -133,7 +133,7 @@ printCom :
     };
 
 
-possibleBlocks : (initialization | varChange | printCom | forCycle | );
+possibleBlocks : (initialization | varChange | printCom | forCycle);
 
 
 boolForm :
@@ -143,19 +143,29 @@ boolForm :
                                                                         (intValue | floatValue);
 
 
-
 breakRule :
     BREAK {sout("\t\t\tbreak;\n")};
 
 
 floatValue :
-    //... 1.0 + 2 - abc...
-    (a=FL|a=INT|a=ID) {sout($a.text)} ((s=PLUS | s=MINUS) (a=FL|a=INT|a=ID) {sout(" " + $s.text + " " + $a.text)})*;
+    // 1.0 + 2 - abc...
+    (a=FL|a=INT|a=ID) {sout($a.text)}
+    (((s=PLUS | s=MINUS) (a=FL|a=INT|a=ID) {sout(" " + $s.text + " " + $a.text)}
+    |
+    LBR {sout(" (");} (intValue | floatValue) RBR {sout(")");}
+    ))*;
 
 
 intValue :
     // 1 + abc
-    (a=INT|a=ID) {sout($a.text)} ((s=PLUS | s=MINUS) (a=INT|a=ID) {sout(" " + $s.text + " " + $a.text)})*;
+    (a=INT|a=ID) {sout($a.text)}
+    (((s=PLUS|s=MINUS) (a=INT|a=ID) {sout(" " + $s.text + " " + $a.text)}
+    |
+    (s=OR|s=AND|s=XOR) (a=INT|a=ID) {sout(" " + $s.text[0] + " " + $a.text)
+    |
+    LBR {sout(" (");} intValue RBR {sout(")");}
+    ))*;
+
 
 //Reserved words
 VAR   : 'var';
@@ -185,7 +195,6 @@ MULT    : '*';
 MOD     : '%';
 QUEST   : '?';
 COLON   : ':';
-SCOLON  : ';';
 RANGE   : '...';
 RANGEB  : '..<';
 
@@ -200,7 +209,6 @@ INT : DIGIT+ ; // references the DIGIT helper rule
 FL : DIGIT+ '.' DIGIT+;
 
 // String
-// Строка
 fragment QUOTATIONMARK : '"';
 STRING : QUOTATIONMARK ~["]+ QUOTATIONMARK;
 

@@ -35,7 +35,7 @@ options
     }
 
     public static void sout(String str){
-        System.out.println(str);
+        System.out.print(str);
     }
 }
 
@@ -47,14 +47,125 @@ options
 {
 }
 
-startRule  : (initialization)*;
+//TODO: Проверка на то, что ID второй раз не объявляется
+//TODO: Проверка на совпадение типов
+//TODO: Проверка на то, что такой ID существует
+//TODO: Выводить код не в консоль, а в файл
+
+
+startRule  : (initialization | forCycle | ifStatAverage)*;
 initialization :
-    //var float: Float = 1.0
-    VAR ID COLON FLOAT
+    //var float: Float = ...
+    VAR ID COLON FLOAT ASSIGN
     {
-        sout("\t\tfloat");
+        sout("\t\tfloat " + $ID.text + " = ");
     }
-    ASSIGN rightValue[$ID.text];
+    floatValue {sout(";\n")}
+    |
+    VAR ID COLON INTEGER ASSIGN
+    {
+        sout("\t\tint " + $ID.text + " = ")
+    }
+    intValue {sout(";\n")};
+
+
+varChange:
+    //cat = ...
+    ID ASSIGN
+    {
+        sout("\t\t" + $ID.text + " = ");
+    }
+    (intValue | floatValue) {sout(";\n")};
+
+
+forCycle :
+    //for _ in 1...n {
+    (FOR i=ID IN (a=INT|a=ID) RANGE (b=INT|b=ID) LCURBR
+    {
+        sout("\t\tfor (int " + $i.text + " = " + $a.text + "; " + $i.text + " <= " + $b.text + "; " + $i.text + "++) {\n\t\t\t");
+    }
+    |
+    //for _ in 1..<n {
+    FOR i=ID IN (a=INT|a=ID) RANGEB (b=INT|b=ID) LCURBR
+    {
+        sout("\t\tfor (int " + $i.text + " = " + $a.text + "; " + $i.text + " < " + $b.text + "; " + $i.text + "++) {\n\t\t\t");
+    })
+    (possibleBlocks | ifStatCycle | breakRule)*
+    RCURBR
+    {
+        sout("\t\t}");
+    };
+
+
+ifStatAverage :
+    //if (bool) {sth}   |   if bool {sth}
+    IF  (LBR {sout("\t\tif (");} boolForm RBR {sout(")");} | boolForm RBR)  LCURBR {sout(" {\n\t\t\t");}
+        (possibleBlocks | ifStatAverage)*
+    RCURBR {sout("}\n");}
+    ( | ELSE LCURBR {sout("\t\telse {"\n\t\t\t);}
+        (possibleBlocks | ifStatAverage)*
+        RCURBR {sout("}\n");}
+    );
+
+
+ifStatCycle:
+    //if (bool) {sth}   |   if bool {sth}
+    IF  (LBR {sout("\t\tif (");} boolForm RBR {sout(")");} | boolForm RBR)  LCURBR {sout(" {\n\t\t\t");}
+        (possibleBlocks | ifStatCycle | breakRule)*
+    RCURBR {sout("}\n");}
+    ( | ELSE LCURBR {sout("\t\telse {"\n\t\t\t);}
+        (possibleBlocks | ifStatCycle | breakRule)*
+        RCURBR {sout("}\n");}
+    );
+
+
+printCom :
+    //print('dfdf") | print(cat) | print(cat + cat + "cat") ...
+    PRINT LBR
+    {
+        sout("\t\tSystem.out.println(");
+    }
+    (STRING {sout($STRING.text);} | ID {sout($ID.text);})
+    (PLUS ID {sout(" + " + $ID.text)} | PLUS STRING {sout(" + " + $STRING.text)})*
+    RBR
+    {
+        sout(");\n");
+    };
+
+
+possibleBlocks : (initialization | varChange | printCom | forCycle);
+
+
+boolForm :
+    // a + d <= b - c
+    (intValue | floatValue)
+            (s=EQUAL|s=GREATER|s=GROREQ|s=LESS|s=LESSOREQ){sout(" " + $s.text + " ")}
+                                                                        (intValue | floatValue);
+
+
+breakRule :
+    BREAK {sout("\t\t\tbreak;\n")};
+
+
+floatValue :
+    // 1.0 + 2 - abc...
+    (a=FL|a=INT|a=ID) {sout($a.text)}
+    (((s=PLUS | s=MINUS) (a=FL|a=INT|a=ID) {sout(" " + $s.text + " " + $a.text)}
+    |
+    LBR {sout(" (");} (intValue | floatValue) RBR {sout(")");}
+    ))*;
+
+
+intValue :
+    // 1 + abc
+    (a=INT|a=ID) {sout($a.text)}
+    (((s=PLUS|s=MINUS) (a=INT|a=ID) {sout(" " + $s.text + " " + $a.text)}
+    |
+    (s=OR|s=AND|s=XOR) (a=INT|a=ID) {sout(" " + $s.text[0] + " " + $a.text)
+    |
+    LBR {sout(" (");} intValue RBR {sout(")");}
+    ))*;
+
 
 //Reserved words
 VAR   : 'var';
@@ -64,6 +175,8 @@ BREAK : 'break';
 IF    : 'if';
 ELSE  : 'else';
 PRINT : 'print';
+INTEGER : 'Int';
+FLOAT : 'Float';
 
 //Operators
 ASSIGN	: '=' ;
@@ -82,26 +195,26 @@ MULT    : '*';
 MOD     : '%';
 QUEST   : '?';
 COLON   : ':';
-SCOLON  : ';';
+RANGE   : '...';
+RANGEB  : '..<';
 
 
 //Identifiers
-ID : [a-zA-Z]+ {};
+ID : [a-zA-Z_]+ {};
 
 //Literals
 fragment DIGIT : [0-9] ; // not a token by itself
 
 INT : DIGIT+ ; // references the DIGIT helper rule
-FLOAT : DIGIT+ '.' DIGIT+;
+FL : DIGIT+ '.' DIGIT+;
 
 // String
-// Строка
 fragment QUOTATIONMARK : '"';
 STRING : QUOTATIONMARK ~["]+ QUOTATIONMARK;
 
 LCURBR : '{';
 RCURBR : '}';
-LRBR   : '(';
+LBR   : '(';
 RBR    : ')';
 
-WS : [ \t\r\n]+ { Skip(); } ;
+WS : [ \t\r\n;]+ -> skip ;
