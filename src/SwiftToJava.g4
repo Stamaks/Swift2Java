@@ -47,6 +47,11 @@ options
 {
 }
 
+//TODO: Проверка на то, что ID второй раз не объявляется
+//TODO: Проверка на совпадение типов
+//TODO: Проверка на то, что такой ID существует
+
+
 startRule  : (initialization | forCycle | ifStat)*;
 initialization :
     //var float: Float = ...
@@ -67,39 +72,48 @@ varChange:
     //cat = ...
     ID ASSIGN
     {
-        sout($ID.text + " = ");
+        sout("\t\t" + $ID.text + " = ");
     }
     (rightIntValue | rightFloatValue);
 
 
-
 forCycle :
     //for _ in 1...n {
-    FOR i=ID IN (a=INT|a=ID) RANGE (b=INT|b=ID) LCURBR
+    (FOR i=ID IN (a=INT|a=ID) RANGE (b=INT|b=ID) LCURBR
     {
         sout("\t\tfor (int " + $i.text + " = " + $a.text + "; " + $i.text + " <= " + $b.text + "; " + $i.text + "++) {\n\t\t\t");
-    }
-    (initialization | varChange | printCom | forCycle | ifStat | breakRule | )*
-    RCURBR
-    {
-        sout("\t\t}");
     }
     |
     //for _ in 1..<n {
     FOR i=ID IN (a=INT|a=ID) RANGEB (b=INT|b=ID) LCURBR
     {
         sout("\t\tfor (int " + $i.text + " = " + $a.text + "; " + $i.text + " < " + $b.text + "; " + $i.text + "++) {\n\t\t\t");
-    }
+    })
     (initialization | varChange | printCom | forCycle | ifStat | breakRule | )*
     RCURBR
     {
         sout("\t\t}");
     };
 
+
+printCom :
+    //print('dfdf") | print(cat) | print(cat + cat + "cat") ...
+    PRINT LBR
+    {
+        sout("\t\tSystem.out.println(");
+    }
+    (STRING {sout($STRING.text);} | ID {sout($ID.text);})
+    (PLUS ID {sout(" + " + $ID.text)} | PLUS STRING {sout(" + " + $STRING.text)})*
+    RBR
+    {
+        sout(")\n");
+    };
+
+
 rightFloatValue :
     //... 1.0 + 2 + abc...
-    //TODO: Проверка на то, что такой ID существует
     (a=FL|a=INT|a=ID) {sout($a.text)} (PLUS (a=FL|a=INT|a=ID) {sout(" + " + $a.text)})* {sout(";\n")};
+
 
 rightIntValue :
     // 1 + abc
@@ -154,7 +168,7 @@ STRING : QUOTATIONMARK ~["]+ QUOTATIONMARK;
 
 LCURBR : '{';
 RCURBR : '}';
-LRBR   : '(';
+LBR   : '(';
 RBR    : ')';
 
 WS : [ \t\r\n;]+ -> skip ;
