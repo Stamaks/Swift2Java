@@ -89,20 +89,31 @@ forCycle :
     {
         sout("\t\tfor (int " + $i.text + " = " + $a.text + "; " + $i.text + " < " + $b.text + "; " + $i.text + "++) {\n\t\t\t");
     })
-    (initialization | varChange | printCom | forCycle | ifStat | breakRule | )*
+    (possibleBlocks | ifStatCycle | breakRule)*
     RCURBR
     {
         sout("\t\t}");
     };
 
 
-ifStat :
+ifStatAverage :
     //if (bool) {sth}   |   if bool {sth}
     IF  (LBR {sout("\t\tif (");} boolForm RBR {sout(")");} | boolForm RBR)  LCURBR {sout(" {\n\t\t\t");}
-        (initialization | varChange | printCom | forCycle | ifStat | )*
+        (possibleBlocks | ifStatAverage)*
     RCURBR {sout("}\n");}
     ( | ELSE LCURBR {sout("\t\telse {"\n\t\t\t);}
-        (initialization | varChange | printCom | forCycle | ifStat | )*
+        (possibleBlocks | ifStatAverage)*
+        RCURBR {sout("}\n");}
+    );
+
+
+ifStatCycle:
+    //if (bool) {sth}   |   if bool {sth}
+    IF  (LBR {sout("\t\tif (");} boolForm RBR {sout(")");} | boolForm RBR)  LCURBR {sout(" {\n\t\t\t");}
+        (possibleBlocks | ifStatCycle | breakRule)*
+    RCURBR {sout("}\n");}
+    ( | ELSE LCURBR {sout("\t\telse {"\n\t\t\t);}
+        (possibleBlocks | ifStatCycle | breakRule)*
         RCURBR {sout("}\n");}
     );
 
@@ -119,6 +130,12 @@ printCom :
     {
         sout(")\n");
     };
+
+
+possibleBlocks : (initialization | varChange | printCom | forCycle | );
+
+breakRule :
+    BREAK {sout("\t\t\tbreak;\n")};
 
 
 rightFloatValue :
