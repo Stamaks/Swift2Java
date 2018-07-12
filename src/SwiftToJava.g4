@@ -63,6 +63,16 @@ initialization :
     rightIntValue;
 
 
+varChange:
+    //cat = ...
+    ID ASSIGN
+    {
+        sout($ID.text + " = ");
+    }
+    (rightIntValue | rightFloatValue);
+
+
+
 forCycle :
     //for _ in 1...n {
     FOR i=ID IN (a=INT|a=ID) RANGE (b=INT|b=ID) LCURBR
