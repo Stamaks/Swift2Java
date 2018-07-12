@@ -15,20 +15,24 @@ options
 
     static String suffixCodeGen = "\t}\n}";
 
-//    public static void main(String args[]){
-//        CharStream input = CharStreams.fromStream(System.in);
-//        // create a lexer that feeds off of input CharStream
-//        SwiftToJavaLexer lexer = new SwiftToJavaLexer(input);
-//        // create a buffer of tokens pulled from the lexer
-//        CommonTokenStream tokens = new CommonTokenStream((TokenSource) lexer);
-//        // create a parser that feeds off the tokens buffer
-//        SwiftToJavaParser parser = new SwiftToJavaParser(tokens);
-//
-//        sout(prefixCodeGen);
-//        ParseTree tree = parser.startRule();
-//        sout(suffixCodeGen);
-//
-//    }
+    public static void main(String args[]){
+        // create a CharStream that reads from standard input
+        ANTLRInputStream input = new ANTLRInputStream(System.in);
+        // create a lexer that feeds off of input CharStream
+        ArrayInitLexer lexer = new ArrayInitLexer(input);
+        // create a buffer of tokens pulled from the lexer
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        // create a parser that feeds off the tokens buffer
+        ArrayInitParser parser = new ArrayInitParser(tokens);
+
+        sout(prefixCodeGen);
+        ParseTree tree = parser.init();
+        sout(suffixCodeGen);
+
+        // begin parsing at init rule
+        // print LISP-style tree
+        //System.out.println(tree.toStringTree(parser));
+    }
 
     public static void sout(String str){
         System.out.print(str);
@@ -167,7 +171,7 @@ intValue :
     (a=INT|a=ID) {sout($a.text);}
     (((s=PLUS|s=MINUS|s=MULT|s=MOD) (a=INT|a=ID) {sout(" " + $s.text + " " + $a.text);}
     |
-    (s=OR|s=AND|s=XOR) (a=INT|a=ID) {sout(" " + $s.text + " " + $a.text);}
+    (s=OR|s=AND|s=XOR) (a=INT|a=ID) {sout(" " + $s.text[0] + " " + $a.text);}
     |
     LBR {sout(" (");} intValue RBR {sout(")");}
     ))*;

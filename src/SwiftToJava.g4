@@ -15,24 +15,20 @@ options
 
     static String suffixCodeGen = "\t}\n}";
 
-    public static void main(String args[]){
-        // create a CharStream that reads from standard input
-        ANTLRInputStream input = new ANTLRInputStream(System.in);
-        // create a lexer that feeds off of input CharStream
-        ArrayInitLexer lexer = new ArrayInitLexer(input);
-        // create a buffer of tokens pulled from the lexer
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-        // create a parser that feeds off the tokens buffer
-        ArrayInitParser parser = new ArrayInitParser(tokens);
-
-        sout(prefixCodeGen);
-        ParseTree tree = parser.init();
-        sout(suffixCodeGen);
-
-        // begin parsing at init rule
-        // print LISP-style tree
-        //System.out.println(tree.toStringTree(parser));
-    }
+//    public static void main(String args[]){
+//        CharStream input = CharStreams.fromStream(System.in);
+//        // create a lexer that feeds off of input CharStream
+//        SwiftToJavaLexer lexer = new SwiftToJavaLexer(input);
+//        // create a buffer of tokens pulled from the lexer
+//        CommonTokenStream tokens = new CommonTokenStream((TokenSource) lexer);
+//        // create a parser that feeds off the tokens buffer
+//        SwiftToJavaParser parser = new SwiftToJavaParser(tokens);
+//
+//        sout(prefixCodeGen);
+//        ParseTree tree = parser.startRule();
+//        sout(suffixCodeGen);
+//
+//    }
 
     public static void sout(String str){
         System.out.print(str);
@@ -51,6 +47,7 @@ options
 //TODO: Проверка на совпадение типов
 //TODO: Проверка на то, что такой ID существует
 //TODO: Выводить код не в консоль, а в файл
+//TODO: Проверка на то, что имя переменной не зарезервировано
 
 
 startRule  : (initialization | forCycle | ifStatAverage | varChange | printCom)*;
@@ -60,13 +57,13 @@ initialization :
     {
         sout("\t\tfloat " + $ID.text + " = ");
     }
-    floatValue {sout(";\n")}
+    floatValue {sout(";\n");}
     |
     VAR ID COLON INTEGER ASSIGN
     {
-        sout("\t\tint " + $ID.text + " = ")
+        sout("\t\tint " + $ID.text + " = ");
     }
-    intValue {sout(";\n")}; 
+    intValue {sout(";\n");};
 
 
 varChange:
@@ -75,7 +72,7 @@ varChange:
     {
         sout("\t\t" + $ID.text + " = ");
     }
-    (intValue | floatValue) {sout(";\n")};
+    (intValue | floatValue) {sout(";\n");};
 
 
 forCycle :
@@ -137,7 +134,7 @@ printCom :
     //print('dfdf") | print(cat) | print(cat + cat + "cat") ...
     PRINT LBR {sout("\t\tSystem.out.println(");}
         (STRING {sout($STRING.text);} | ID {sout($ID.text);})?
-        (PLUS ID {sout(" + " + $ID.text)} | PLUS STRING {sout(" + " + $STRING.text)})*
+        (PLUS ID {sout(" + " + $ID.text);} | PLUS STRING {sout(" + " + $STRING.text);})*
     RBR {sout(");\n");};
 
 
@@ -149,18 +146,18 @@ boolForm :
     NOT LBR {sout("!(");} boolForm RBR {sout(")");}
     |
     (intValue | floatValue)
-            (s=EQUAL|s=NEQUAL|s=GREATER|s=GROREQ|s=LESS|s=LESSOREQ){sout(" " + $s.text + " ")}
+            (s=EQUAL|s=NEQUAL|s=GREATER|s=GROREQ|s=LESS|s=LESSOREQ){sout(" " + $s.text + " ");}
                                                                         (intValue | floatValue);
 
 
 breakRule :
-    BREAK {sout("\t\t\tbreak;\n")};
+    BREAK {sout("\t\t\tbreak;\n");};
 
 
 floatValue :
     // 1.0 + 2 - abc...
-    (a=FL|a=INT|a=ID) {sout($a.text)}
-    (((s=PLUS|s=MINUS|s=MULT|s=MOD) (a=FL|a=INT|a=ID) {sout(" " + $s.text + " " + $a.text)}
+    (FL {sout($FL.text + "f");} | INT {sout($INT.text + "f");} | ID {sout($ID.text);})
+    (((s=PLUS|s=MINUS|s=MULT|s=MOD) (a=FL|a=INT|a=ID) {sout(" " + $s.text + " " + $a.text);}
     |
     LBR {sout(" (");} (intValue | floatValue) RBR {sout(")");}
     ))*;
@@ -168,10 +165,10 @@ floatValue :
 
 intValue :
     // 1 + abc
-    (a=INT|a=ID) {sout($a.text)}
-    (((s=PLUS|s=MINUS|s=MULT|s=MOD) (a=INT|a=ID) {sout(" " + $s.text + " " + $a.text)}
+    (a=INT|a=ID) {sout($a.text);}
+    (((s=PLUS|s=MINUS|s=MULT|s=MOD) (a=INT|a=ID) {sout(" " + $s.text + " " + $a.text);}
     |
-    (s=OR|s=AND|s=XOR) (a=INT|a=ID) {sout(" " + $s.text[0] + " " + $a.text)}
+    (s=OR|s=AND|s=XOR) (a=INT|a=ID) {sout(" " + $s.text + " " + $a.text);}
     |
     LBR {sout(" (");} intValue RBR {sout(")");}
     ))*;

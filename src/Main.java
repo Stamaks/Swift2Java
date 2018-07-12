@@ -1,11 +1,33 @@
+import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.tree.ParseTree;
+
+import java.io.IOException;
+
 /**
  * Created by alena on 12.07.18.
  */
 public class Main
 {
-    public static void main(String args[]){
-        System.out.println("public class Main\n{\n\tpublic static void main(String args[]){\n\t\tHERE");
-        float f = 2.4f;
-        System.out.println(!!!!true);
+    static String prefixCodeGen = "public class Main\n{\n\tpublic static void main(String args[]){\n";
+
+    static String suffixCodeGen = "\t}\n}";
+
+    public static void main(String args[]) throws IOException {
+
+        CharStream input = CharStreams.fromStream(System.in);
+        // create a lexer that feeds off of input CharStream
+        SwiftToJavaLexer lexer = new SwiftToJavaLexer(input);
+        // create a buffer of tokens pulled from the lexer
+        CommonTokenStream tokens = new CommonTokenStream((TokenSource) lexer);
+        // create a parser that feeds off the tokens buffer
+        SwiftToJavaParser parser = new SwiftToJavaParser(tokens);
+
+        sout(prefixCodeGen);
+        ParseTree tree = parser.startRule();
+        sout(suffixCodeGen);
+    }
+
+    public static void sout(String str){
+        System.out.print(str);
     }
 }
