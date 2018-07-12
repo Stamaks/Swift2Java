@@ -50,6 +50,7 @@ options
 //TODO: Проверка на то, что ID второй раз не объявляется
 //TODO: Проверка на совпадение типов
 //TODO: Проверка на то, что такой ID существует
+//TODO: переименовать RightFloatValue, убрать ; и переставить в саму функцию
 
 
 startRule  : (initialization | forCycle | ifStat)*;
@@ -59,13 +60,13 @@ initialization :
     {
         sout("\t\tfloat " + $ID.text + " = ");
     }
-    rightFloatValue
+    floatValue {sout(";\n")}
     |
     VAR ID COLON INTEGER ASSIGN
     {
         sout("\t\tint " + $ID.text + " = ")
     }
-    rightIntValue;
+    intValue {sout(";\n")};
 
 
 varChange:
@@ -74,7 +75,7 @@ varChange:
     {
         sout("\t\t" + $ID.text + " = ");
     }
-    (rightIntValue | rightFloatValue);
+    (intValue | floatValue) {sout(";\n")};
 
 
 forCycle :
@@ -128,24 +129,33 @@ printCom :
     (PLUS ID {sout(" + " + $ID.text)} | PLUS STRING {sout(" + " + $STRING.text)})*
     RBR
     {
-        sout(")\n");
+        sout(");\n");
     };
 
 
 possibleBlocks : (initialization | varChange | printCom | forCycle | );
 
+
+boolForm :
+    // a + d <= b - c
+    (intValue | floatValue)
+            (s=EQUAL|s=GREATER|s=GROREQ|s=LESS|s=LESSOREQ){sout(" " + $s.text + " ")}
+                                                                        (intValue | floatValue);
+
+
+
 breakRule :
     BREAK {sout("\t\t\tbreak;\n")};
 
 
-rightFloatValue :
-    //... 1.0 + 2 + abc...
-    (a=FL|a=INT|a=ID) {sout($a.text)} (PLUS (a=FL|a=INT|a=ID) {sout(" + " + $a.text)})* {sout(";\n")};
+floatValue :
+    //... 1.0 + 2 - abc...
+    (a=FL|a=INT|a=ID) {sout($a.text)} ((s=PLUS | s=MINUS) (a=FL|a=INT|a=ID) {sout(" " + $s.text + " " + $a.text)})*;
 
 
-rightIntValue :
+intValue :
     // 1 + abc
-    (a=INT|a=ID) {sout($a.text)} (PLUS (a=INT|a=ID) {sout(" + " + $a.text)})* {sout(";\n")};
+    (a=INT|a=ID) {sout($a.text)} ((s=PLUS | s=MINUS) (a=INT|a=ID) {sout(" " + $s.text + " " + $a.text)})*;
 
 //Reserved words
 VAR   : 'var';
