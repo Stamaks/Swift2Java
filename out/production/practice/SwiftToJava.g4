@@ -51,6 +51,7 @@ options
 //TODO: Проверка на совпадение типов
 //TODO: Проверка на то, что такой ID существует
 //TODO: Выводить код не в консоль, а в файл
+//TODO: Not in bool
 
 
 startRule  : (initialization | forCycle | ifStatAverage)*;
@@ -150,7 +151,7 @@ breakRule :
 floatValue :
     // 1.0 + 2 - abc...
     (a=FL|a=INT|a=ID) {sout($a.text)}
-    (((s=PLUS | s=MINUS) (a=FL|a=INT|a=ID) {sout(" " + $s.text + " " + $a.text)}
+    (((s=PLUS|s=MINUS|s=MULT|s=MOD) (a=FL|a=INT|a=ID) {sout(" " + $s.text + " " + $a.text)}
     |
     LBR {sout(" (");} (intValue | floatValue) RBR {sout(")");}
     ))*;
@@ -159,9 +160,9 @@ floatValue :
 intValue :
     // 1 + abc
     (a=INT|a=ID) {sout($a.text)}
-    (((s=PLUS|s=MINUS) (a=INT|a=ID) {sout(" " + $s.text + " " + $a.text)}
+    (((s=PLUS|s=MINUS|s=MULT|s=MOD) (a=INT|a=ID) {sout(" " + $s.text + " " + $a.text)}
     |
-    (s=OR|s=AND|s=XOR) (a=INT|a=ID) {sout(" " + $s.text[0] + " " + $a.text)
+    (s=OR|s=AND|s=XOR) (a=INT|a=ID) {sout(" " + $s.text[0] + " " + $a.text)}
     |
     LBR {sout(" (");} intValue RBR {sout(")");}
     ))*;
