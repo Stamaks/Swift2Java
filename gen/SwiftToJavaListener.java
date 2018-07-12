@@ -29,13 +29,103 @@ public interface SwiftToJavaListener extends ParseTreeListener {
 	 */
 	void exitInitialization(SwiftToJavaParser.InitializationContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link SwiftToJavaParser#rightFloatValue}.
+	 * Enter a parse tree produced by {@link SwiftToJavaParser#varChange}.
 	 * @param ctx the parse tree
 	 */
-	void enterRightFloatValue(SwiftToJavaParser.RightFloatValueContext ctx);
+	void enterVarChange(SwiftToJavaParser.VarChangeContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link SwiftToJavaParser#rightFloatValue}.
+	 * Exit a parse tree produced by {@link SwiftToJavaParser#varChange}.
 	 * @param ctx the parse tree
 	 */
-	void exitRightFloatValue(SwiftToJavaParser.RightFloatValueContext ctx);
+	void exitVarChange(SwiftToJavaParser.VarChangeContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SwiftToJavaParser#forCycle}.
+	 * @param ctx the parse tree
+	 */
+	void enterForCycle(SwiftToJavaParser.ForCycleContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SwiftToJavaParser#forCycle}.
+	 * @param ctx the parse tree
+	 */
+	void exitForCycle(SwiftToJavaParser.ForCycleContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SwiftToJavaParser#ifStatAverage}.
+	 * @param ctx the parse tree
+	 */
+	void enterIfStatAverage(SwiftToJavaParser.IfStatAverageContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SwiftToJavaParser#ifStatAverage}.
+	 * @param ctx the parse tree
+	 */
+	void exitIfStatAverage(SwiftToJavaParser.IfStatAverageContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SwiftToJavaParser#ifStatCycle}.
+	 * @param ctx the parse tree
+	 */
+	void enterIfStatCycle(SwiftToJavaParser.IfStatCycleContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SwiftToJavaParser#ifStatCycle}.
+	 * @param ctx the parse tree
+	 */
+	void exitIfStatCycle(SwiftToJavaParser.IfStatCycleContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SwiftToJavaParser#printCom}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrintCom(SwiftToJavaParser.PrintComContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SwiftToJavaParser#printCom}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrintCom(SwiftToJavaParser.PrintComContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SwiftToJavaParser#possibleBlocks}.
+	 * @param ctx the parse tree
+	 */
+	void enterPossibleBlocks(SwiftToJavaParser.PossibleBlocksContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SwiftToJavaParser#possibleBlocks}.
+	 * @param ctx the parse tree
+	 */
+	void exitPossibleBlocks(SwiftToJavaParser.PossibleBlocksContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SwiftToJavaParser#boolForm}.
+	 * @param ctx the parse tree
+	 */
+	void enterBoolForm(SwiftToJavaParser.BoolFormContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SwiftToJavaParser#boolForm}.
+	 * @param ctx the parse tree
+	 */
+	void exitBoolForm(SwiftToJavaParser.BoolFormContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SwiftToJavaParser#breakRule}.
+	 * @param ctx the parse tree
+	 */
+	void enterBreakRule(SwiftToJavaParser.BreakRuleContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SwiftToJavaParser#breakRule}.
+	 * @param ctx the parse tree
+	 */
+	void exitBreakRule(SwiftToJavaParser.BreakRuleContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SwiftToJavaParser#floatValue}.
+	 * @param ctx the parse tree
+	 */
+	void enterFloatValue(SwiftToJavaParser.FloatValueContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SwiftToJavaParser#floatValue}.
+	 * @param ctx the parse tree
+	 */
+	void exitFloatValue(SwiftToJavaParser.FloatValueContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SwiftToJavaParser#intValue}.
+	 * @param ctx the parse tree
+	 */
+	void enterIntValue(SwiftToJavaParser.IntValueContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SwiftToJavaParser#intValue}.
+	 * @param ctx the parse tree
+	 */
+	void exitIntValue(SwiftToJavaParser.IntValueContext ctx);
 }

@@ -51,7 +51,6 @@ options
 //TODO: Проверка на совпадение типов
 //TODO: Проверка на то, что такой ID существует
 //TODO: Выводить код не в консоль, а в файл
-//TODO: Not in bool
 
 
 startRule  : (initialization | forCycle | ifStatAverage)*;
@@ -99,39 +98,47 @@ forCycle :
 
 
 ifStatAverage :
+    //if (bool) sth   |   if bool sth
+    (IF  (LBR {sout("\t\tif (");} boolForm RBR {sout(")");} | boolForm RBR) {sout(" \n\t\t\t");}
+            (possibleBlocks | ifStatAverage)? {sout("\n");}
+    )
+    |
     //if (bool) {sth}   |   if bool {sth}
     IF  (LBR {sout("\t\tif (");} boolForm RBR {sout(")");} | boolForm RBR)  LCURBR {sout(" {\n\t\t\t");}
         (possibleBlocks | ifStatAverage)*
     RCURBR {sout("}\n");}
-    ( | ELSE LCURBR {sout("\t\telse {"\n\t\t\t);}
+    ( | ELSE LCURBR {sout("\t\telse {\n\t\t\t");}
         (possibleBlocks | ifStatAverage)*
         RCURBR {sout("}\n");}
+      | ELSE {sout("\t\telse \n\t\t\t");}
+        (possibleBlocks | ifStatAverage)? {sout("\n");}
     );
 
 
 ifStatCycle:
-    //if (bool) {sth}   |   if bool {sth}
-    IF  (LBR {sout("\t\tif (");} boolForm RBR {sout(")");} | boolForm RBR)  LCURBR {sout(" {\n\t\t\t");}
-        (possibleBlocks | ifStatCycle | breakRule)*
-    RCURBR {sout("}\n");}
-    ( | ELSE LCURBR {sout("\t\telse {"\n\t\t\t);}
-        (possibleBlocks | ifStatCycle | breakRule)*
-        RCURBR {sout("}\n");}
-    );
+   //if (bool) sth   |   if bool sth
+       (IF  (LBR {sout("\t\tif (");} boolForm RBR {sout(")");} | boolForm RBR) {sout(" \n\t\t\t");}
+               (possibleBlocks | ifStatCycle | breakRule)? {sout("\n");}
+       )
+       |
+       //if (bool) {sth}   |   if bool {sth}
+       IF  (LBR {sout("\t\tif (");} boolForm RBR {sout(")");} | boolForm RBR)  LCURBR {sout(" {\n\t\t\t");}
+           (possibleBlocks | ifStatCycle | breakRule)*
+       RCURBR {sout("}\n");}
+       ( | ELSE LCURBR {sout("\t\telse {\n\t\t\t");}
+           (possibleBlocks | ifStatCycle | breakRule)*
+           RCURBR {sout("}\n");}
+         | ELSE {sout("\t\telse \n\t\t\t");}
+           (possibleBlocks | ifStatCycle | breakRule)? {sout("\n");}
+       );
 
 
 printCom :
     //print('dfdf") | print(cat) | print(cat + cat + "cat") ...
-    PRINT LBR
-    {
-        sout("\t\tSystem.out.println(");
-    }
-    (STRING {sout($STRING.text);} | ID {sout($ID.text);})
-    (PLUS ID {sout(" + " + $ID.text)} | PLUS STRING {sout(" + " + $STRING.text)})*
-    RBR
-    {
-        sout(");\n");
-    };
+    PRINT LBR {sout("\t\tSystem.out.println(");}
+        (STRING {sout($STRING.text);} | ID {sout($ID.text);})?
+        (PLUS ID {sout(" + " + $ID.text)} | PLUS STRING {sout(" + " + $STRING.text)})*
+    RBR {sout(");\n");};
 
 
 possibleBlocks : (initialization | varChange | printCom | forCycle);
