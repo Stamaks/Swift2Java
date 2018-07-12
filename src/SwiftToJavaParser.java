@@ -125,6 +125,33 @@ public class SwiftToJavaParser extends Parser {
 	//        sout(suffixCodeGen);
 	//
 	//    }
+	    public void assigned(String id, String type){
+	        if (table.containsKey(id)) {
+	                throw new KeyAlreadyExistsException("Line: " + getContext().start.getLine() +
+	                                                    ": variable " + id + " is already assigned!");
+	            }
+	            if (reservedNames.contains(id)) {
+	                if (table.containsKey(id)) {
+	                        throw new KeyAlreadyExistsException("Line: " + getContext().start.getLine() +
+	                                                            ": variable _" + id + " is already assigned!");
+	                }
+	                table.put("_" + id, type);
+	            }
+	            else {
+	                table.put(id, type);
+	            }
+	    }
+
+	    public void exists(String id){
+	    if (reservedNames.contains(id) && !table.containsKey("_" + id)) {
+	            throw new NoSuchElementException("Line: " + getContext().start.getLine() +
+	                                       ": variable _" + id + " wasn't assigned!");
+	        }
+	        if (!table.containsKey(id)) {
+	                    throw new NoSuchElementException("Line: " + getContext().start.getLine() +
+	                                               ": variable " + id + " wasn't assigned!");
+	        }
+	    }
 
 	    public static void sout(String str){
 	        System.out.print(str);
@@ -294,15 +321,11 @@ public class SwiftToJavaParser extends Parser {
 				setState(38);
 				match(ASSIGN);
 
-				        if (table.containsKey((((InitializationContext)_localctx).ID!=null?((InitializationContext)_localctx).ID.getText():null))) {
-				            throw new KeyAlreadyExistsException("Line: " + getContext().start.getLine() +
-				                                                ": variable " + (((InitializationContext)_localctx).ID!=null?((InitializationContext)_localctx).ID.getText():null) + " is already assigned!");
-				        }
+				        assigned((((InitializationContext)_localctx).ID!=null?((InitializationContext)_localctx).ID.getText():null), "float");
 				        if (reservedNames.contains((((InitializationContext)_localctx).ID!=null?((InitializationContext)_localctx).ID.getText():null)))
-				            table.put("_" + (((InitializationContext)_localctx).ID!=null?((InitializationContext)_localctx).ID.getText():null), "float");
+				            sout("\t\tfloat _" + (((InitializationContext)_localctx).ID!=null?((InitializationContext)_localctx).ID.getText():null) + " = ");
 				        else
-				            table.put((((InitializationContext)_localctx).ID!=null?((InitializationContext)_localctx).ID.getText():null), "float");
-				        sout("\t\tfloat " + (((InitializationContext)_localctx).ID!=null?((InitializationContext)_localctx).ID.getText():null) + " = ");
+				            sout("\t\tfloat " + (((InitializationContext)_localctx).ID!=null?((InitializationContext)_localctx).ID.getText():null) + " = ");
 				    
 				setState(40);
 				floatValue();
@@ -323,12 +346,11 @@ public class SwiftToJavaParser extends Parser {
 				setState(47);
 				match(ASSIGN);
 
-				        if (table.containsKey((((InitializationContext)_localctx).ID!=null?((InitializationContext)_localctx).ID.getText():null))) {
-				                    throw new KeyAlreadyExistsException("Line: " + getContext().start.getLine() +
-				                                                        ": variable " + (((InitializationContext)_localctx).ID!=null?((InitializationContext)_localctx).ID.getText():null) + " is already assigned!");
-				        }
-				        table.put((((InitializationContext)_localctx).ID!=null?((InitializationContext)_localctx).ID.getText():null), "int");
-				        sout("\t\tint " + (((InitializationContext)_localctx).ID!=null?((InitializationContext)_localctx).ID.getText():null) + " = ");
+				        assigned((((InitializationContext)_localctx).ID!=null?((InitializationContext)_localctx).ID.getText():null), "int");
+				        if (reservedNames.contains((((InitializationContext)_localctx).ID!=null?((InitializationContext)_localctx).ID.getText():null)))
+				            sout("\t\tint _" + (((InitializationContext)_localctx).ID!=null?((InitializationContext)_localctx).ID.getText():null) + " = ");
+				        else
+				            sout("\t\tint " + (((InitializationContext)_localctx).ID!=null?((InitializationContext)_localctx).ID.getText():null) + " = ");
 				    
 				setState(49);
 				intValue();
@@ -383,6 +405,7 @@ public class SwiftToJavaParser extends Parser {
 			setState(55);
 			match(ASSIGN);
 
+			        exists((((VarChangeContext)_localctx).ID!=null?((VarChangeContext)_localctx).ID.getText():null));
 			        sout("\t\t" + (((VarChangeContext)_localctx).ID!=null?((VarChangeContext)_localctx).ID.getText():null) + " = ");
 			    
 			setState(59);
@@ -472,7 +495,7 @@ public class SwiftToJavaParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(91);
+			setState(95);
 			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,8,_ctx) ) {
 			case 1:
@@ -483,7 +506,7 @@ public class SwiftToJavaParser extends Parser {
 				((ForCycleContext)_localctx).i = match(ID);
 				setState(65);
 				match(IN);
-				setState(68);
+				setState(69);
 				_errHandler.sync(this);
 				switch (_input.LA(1)) {
 				case INT:
@@ -496,98 +519,110 @@ public class SwiftToJavaParser extends Parser {
 					{
 					setState(67);
 					((ForCycleContext)_localctx).a = match(ID);
+					exists((((ForCycleContext)_localctx).a!=null?((ForCycleContext)_localctx).a.getText():null))
 					}
 					break;
 				default:
 					throw new NoViableAltException(this);
 				}
-				setState(70);
+				setState(71);
 				match(RANGE);
-				setState(73);
+				setState(75);
 				_errHandler.sync(this);
 				switch (_input.LA(1)) {
 				case INT:
 					{
-					setState(71);
+					setState(72);
 					((ForCycleContext)_localctx).b = match(INT);
 					}
 					break;
 				case ID:
 					{
-					setState(72);
+					setState(73);
 					((ForCycleContext)_localctx).b = match(ID);
+					exists((((ForCycleContext)_localctx).b!=null?((ForCycleContext)_localctx).b.getText():null))
 					}
 					break;
 				default:
 					throw new NoViableAltException(this);
 				}
-				setState(75);
+				setState(77);
 				match(LCURBR);
 
-				        sout("\t\tfor (int " + (((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null) + " = " + (((ForCycleContext)_localctx).a!=null?((ForCycleContext)_localctx).a.getText():null) + "; " + (((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null) + " <= " + (((ForCycleContext)_localctx).b!=null?((ForCycleContext)_localctx).b.getText():null) + "; " + (((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null) + "++) {\n\t\t\t");
+				        assigned((((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null), "float");
+
+				        if (reservedNames.contains((((ForCycleContext)_localctx).ID!=null?((ForCycleContext)_localctx).ID.getText():null)))
+				            sout("\t\tfor (int _" + (((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null) + " = " + (((ForCycleContext)_localctx).a!=null?((ForCycleContext)_localctx).a.getText():null) + "; _" + (((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null) + " <= " + (((ForCycleContext)_localctx).b!=null?((ForCycleContext)_localctx).b.getText():null) + "; _" + (((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null) + "++) {\n\t\t\t");
+				        else
+				            sout("\t\tfor (int " + (((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null) + " = " + (((ForCycleContext)_localctx).a!=null?((ForCycleContext)_localctx).a.getText():null) + "; " + (((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null) + " <= " + (((ForCycleContext)_localctx).b!=null?((ForCycleContext)_localctx).b.getText():null) + "; " + (((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null) + "++) {\n\t\t\t");
 				    
 				}
 				break;
 			case 2:
 				{
-				setState(77);
-				match(FOR);
-				setState(78);
-				((ForCycleContext)_localctx).i = match(ID);
 				setState(79);
+				match(FOR);
+				setState(80);
+				((ForCycleContext)_localctx).i = match(ID);
+				setState(81);
 				match(IN);
-				setState(82);
+				setState(85);
 				_errHandler.sync(this);
 				switch (_input.LA(1)) {
 				case INT:
 					{
-					setState(80);
+					setState(82);
 					((ForCycleContext)_localctx).a = match(INT);
 					}
 					break;
 				case ID:
 					{
-					setState(81);
+					setState(83);
 					((ForCycleContext)_localctx).a = match(ID);
+					exists((((ForCycleContext)_localctx).a!=null?((ForCycleContext)_localctx).a.getText():null))
 					}
 					break;
 				default:
 					throw new NoViableAltException(this);
 				}
-				setState(84);
-				match(RANGEB);
 				setState(87);
+				match(RANGEB);
+				setState(91);
 				_errHandler.sync(this);
 				switch (_input.LA(1)) {
 				case INT:
 					{
-					setState(85);
+					setState(88);
 					((ForCycleContext)_localctx).b = match(INT);
 					}
 					break;
 				case ID:
 					{
-					setState(86);
+					setState(89);
 					((ForCycleContext)_localctx).b = match(ID);
+					exists((((ForCycleContext)_localctx).b!=null?((ForCycleContext)_localctx).b.getText():null))
 					}
 					break;
 				default:
 					throw new NoViableAltException(this);
 				}
-				setState(89);
+				setState(93);
 				match(LCURBR);
 
-				        sout("\t\tfor (int " + (((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null) + " = " + (((ForCycleContext)_localctx).a!=null?((ForCycleContext)_localctx).a.getText():null) + "; " + (((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null) + " < " + (((ForCycleContext)_localctx).b!=null?((ForCycleContext)_localctx).b.getText():null) + "; " + (((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null) + "++) {\n\t\t\t");
-				    
+				        if (reservedNames.contains((((ForCycleContext)_localctx).ID!=null?((ForCycleContext)_localctx).ID.getText():null)))
+				                    sout("\t\tfor (int _" + (((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null) + " = " + (((ForCycleContext)_localctx).a!=null?((ForCycleContext)_localctx).a.getText():null) + "; _" + (((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null) + " < " + (((ForCycleContext)_localctx).b!=null?((ForCycleContext)_localctx).b.getText():null) + "; _" + (((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null) + "++) {\n\t\t\t");
+				                else
+				                    sout("\t\tfor (int " + (((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null) + " = " + (((ForCycleContext)_localctx).a!=null?((ForCycleContext)_localctx).a.getText():null) + "; " + (((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null) + " < " + (((ForCycleContext)_localctx).b!=null?((ForCycleContext)_localctx).b.getText():null) + "; " + (((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null) + "++) {\n\t\t\t");
+				        
 				}
 				break;
 			}
-			setState(98);
+			setState(102);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << VAR) | (1L << FOR) | (1L << BREAK) | (1L << IF) | (1L << PRINT) | (1L << ID))) != 0)) {
 				{
-				setState(96);
+				setState(100);
 				_errHandler.sync(this);
 				switch (_input.LA(1)) {
 				case VAR:
@@ -595,19 +630,19 @@ public class SwiftToJavaParser extends Parser {
 				case PRINT:
 				case ID:
 					{
-					setState(93);
+					setState(97);
 					possibleBlocks();
 					}
 					break;
 				case IF:
 					{
-					setState(94);
+					setState(98);
 					ifStatCycle();
 					}
 					break;
 				case BREAK:
 					{
-					setState(95);
+					setState(99);
 					breakRule();
 					}
 					break;
@@ -615,11 +650,11 @@ public class SwiftToJavaParser extends Parser {
 					throw new NoViableAltException(this);
 				}
 				}
-				setState(100);
+				setState(104);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
-			setState(101);
+			setState(105);
 			match(RCURBR);
 
 			        sout("\t\t}");
@@ -684,26 +719,26 @@ public class SwiftToJavaParser extends Parser {
 		enterRule(_localctx, 8, RULE_ifStatAverage);
 		int _la;
 		try {
-			setState(168);
+			setState(172);
 			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,20,_ctx) ) {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
 				{
-				setState(104);
+				setState(108);
 				match(IF);
-				setState(114);
+				setState(118);
 				_errHandler.sync(this);
 				switch (_input.LA(1)) {
 				case LBR:
 					{
-					setState(105);
+					setState(109);
 					match(LBR);
 					sout("\t\tif (");
-					setState(107);
+					setState(111);
 					boolForm();
-					setState(108);
+					setState(112);
 					match(RBR);
 					sout(")");
 					}
@@ -713,9 +748,9 @@ public class SwiftToJavaParser extends Parser {
 				case INT:
 				case FL:
 					{
-					setState(111);
+					setState(115);
 					boolForm();
-					setState(112);
+					setState(116);
 					match(RBR);
 					}
 					break;
@@ -723,18 +758,18 @@ public class SwiftToJavaParser extends Parser {
 					throw new NoViableAltException(this);
 				}
 				sout(" \n\t\t\t");
-				setState(119);
+				setState(123);
 				_errHandler.sync(this);
 				switch ( getInterpreter().adaptivePredict(_input,12,_ctx) ) {
 				case 1:
 					{
-					setState(117);
+					setState(121);
 					possibleBlocks();
 					}
 					break;
 				case 2:
 					{
-					setState(118);
+					setState(122);
 					ifStatAverage();
 					}
 					break;
@@ -746,19 +781,19 @@ public class SwiftToJavaParser extends Parser {
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(123);
+				setState(127);
 				match(IF);
-				setState(133);
+				setState(137);
 				_errHandler.sync(this);
 				switch (_input.LA(1)) {
 				case LBR:
 					{
-					setState(124);
+					setState(128);
 					match(LBR);
 					sout("\t\tif (");
-					setState(126);
+					setState(130);
 					boolForm();
-					setState(127);
+					setState(131);
 					match(RBR);
 					sout(")");
 					}
@@ -768,24 +803,24 @@ public class SwiftToJavaParser extends Parser {
 				case INT:
 				case FL:
 					{
-					setState(130);
+					setState(134);
 					boolForm();
-					setState(131);
+					setState(135);
 					match(RBR);
 					}
 					break;
 				default:
 					throw new NoViableAltException(this);
 				}
-				setState(135);
+				setState(139);
 				match(LCURBR);
 				sout(" {\n\t\t\t");
-				setState(141);
+				setState(145);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << VAR) | (1L << FOR) | (1L << IF) | (1L << PRINT) | (1L << ID))) != 0)) {
 					{
-					setState(139);
+					setState(143);
 					_errHandler.sync(this);
 					switch (_input.LA(1)) {
 					case VAR:
@@ -793,13 +828,13 @@ public class SwiftToJavaParser extends Parser {
 					case PRINT:
 					case ID:
 						{
-						setState(137);
+						setState(141);
 						possibleBlocks();
 						}
 						break;
 					case IF:
 						{
-						setState(138);
+						setState(142);
 						ifStatAverage();
 						}
 						break;
@@ -807,14 +842,14 @@ public class SwiftToJavaParser extends Parser {
 						throw new NoViableAltException(this);
 					}
 					}
-					setState(143);
+					setState(147);
 					_errHandler.sync(this);
 					_la = _input.LA(1);
 				}
-				setState(144);
+				setState(148);
 				match(RCURBR);
 				sout("}\n");
-				setState(166);
+				setState(170);
 				_errHandler.sync(this);
 				switch ( getInterpreter().adaptivePredict(_input,19,_ctx) ) {
 				case 1:
@@ -823,17 +858,17 @@ public class SwiftToJavaParser extends Parser {
 					break;
 				case 2:
 					{
-					setState(147);
+					setState(151);
 					match(ELSE);
-					setState(148);
+					setState(152);
 					match(LCURBR);
 					sout("\t\telse {\n\t\t\t");
-					setState(154);
+					setState(158);
 					_errHandler.sync(this);
 					_la = _input.LA(1);
 					while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << VAR) | (1L << FOR) | (1L << IF) | (1L << PRINT) | (1L << ID))) != 0)) {
 						{
-						setState(152);
+						setState(156);
 						_errHandler.sync(this);
 						switch (_input.LA(1)) {
 						case VAR:
@@ -841,13 +876,13 @@ public class SwiftToJavaParser extends Parser {
 						case PRINT:
 						case ID:
 							{
-							setState(150);
+							setState(154);
 							possibleBlocks();
 							}
 							break;
 						case IF:
 							{
-							setState(151);
+							setState(155);
 							ifStatAverage();
 							}
 							break;
@@ -855,32 +890,32 @@ public class SwiftToJavaParser extends Parser {
 							throw new NoViableAltException(this);
 						}
 						}
-						setState(156);
+						setState(160);
 						_errHandler.sync(this);
 						_la = _input.LA(1);
 					}
-					setState(157);
+					setState(161);
 					match(RCURBR);
 					sout("}\n");
 					}
 					break;
 				case 3:
 					{
-					setState(159);
+					setState(163);
 					match(ELSE);
 					sout("\t\telse \n\t\t\t");
-					setState(163);
+					setState(167);
 					_errHandler.sync(this);
 					switch ( getInterpreter().adaptivePredict(_input,18,_ctx) ) {
 					case 1:
 						{
-						setState(161);
+						setState(165);
 						possibleBlocks();
 						}
 						break;
 					case 2:
 						{
-						setState(162);
+						setState(166);
 						ifStatAverage();
 						}
 						break;
@@ -957,26 +992,26 @@ public class SwiftToJavaParser extends Parser {
 		enterRule(_localctx, 10, RULE_ifStatCycle);
 		int _la;
 		try {
-			setState(238);
+			setState(242);
 			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,30,_ctx) ) {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
 				{
-				setState(170);
+				setState(174);
 				match(IF);
-				setState(180);
+				setState(184);
 				_errHandler.sync(this);
 				switch (_input.LA(1)) {
 				case LBR:
 					{
-					setState(171);
+					setState(175);
 					match(LBR);
 					sout("\t\tif (");
-					setState(173);
+					setState(177);
 					boolForm();
-					setState(174);
+					setState(178);
 					match(RBR);
 					sout(")");
 					}
@@ -986,9 +1021,9 @@ public class SwiftToJavaParser extends Parser {
 				case INT:
 				case FL:
 					{
-					setState(177);
+					setState(181);
 					boolForm();
-					setState(178);
+					setState(182);
 					match(RBR);
 					}
 					break;
@@ -996,24 +1031,24 @@ public class SwiftToJavaParser extends Parser {
 					throw new NoViableAltException(this);
 				}
 				sout(" \n\t\t\t");
-				setState(186);
+				setState(190);
 				_errHandler.sync(this);
 				switch ( getInterpreter().adaptivePredict(_input,22,_ctx) ) {
 				case 1:
 					{
-					setState(183);
+					setState(187);
 					possibleBlocks();
 					}
 					break;
 				case 2:
 					{
-					setState(184);
+					setState(188);
 					ifStatCycle();
 					}
 					break;
 				case 3:
 					{
-					setState(185);
+					setState(189);
 					breakRule();
 					}
 					break;
@@ -1025,19 +1060,19 @@ public class SwiftToJavaParser extends Parser {
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(190);
+				setState(194);
 				match(IF);
-				setState(200);
+				setState(204);
 				_errHandler.sync(this);
 				switch (_input.LA(1)) {
 				case LBR:
 					{
-					setState(191);
+					setState(195);
 					match(LBR);
 					sout("\t\tif (");
-					setState(193);
+					setState(197);
 					boolForm();
-					setState(194);
+					setState(198);
 					match(RBR);
 					sout(")");
 					}
@@ -1047,24 +1082,24 @@ public class SwiftToJavaParser extends Parser {
 				case INT:
 				case FL:
 					{
-					setState(197);
+					setState(201);
 					boolForm();
-					setState(198);
+					setState(202);
 					match(RBR);
 					}
 					break;
 				default:
 					throw new NoViableAltException(this);
 				}
-				setState(202);
+				setState(206);
 				match(LCURBR);
 				sout(" {\n\t\t\t");
-				setState(209);
+				setState(213);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << VAR) | (1L << FOR) | (1L << BREAK) | (1L << IF) | (1L << PRINT) | (1L << ID))) != 0)) {
 					{
-					setState(207);
+					setState(211);
 					_errHandler.sync(this);
 					switch (_input.LA(1)) {
 					case VAR:
@@ -1072,19 +1107,19 @@ public class SwiftToJavaParser extends Parser {
 					case PRINT:
 					case ID:
 						{
-						setState(204);
+						setState(208);
 						possibleBlocks();
 						}
 						break;
 					case IF:
 						{
-						setState(205);
+						setState(209);
 						ifStatCycle();
 						}
 						break;
 					case BREAK:
 						{
-						setState(206);
+						setState(210);
 						breakRule();
 						}
 						break;
@@ -1092,14 +1127,14 @@ public class SwiftToJavaParser extends Parser {
 						throw new NoViableAltException(this);
 					}
 					}
-					setState(211);
+					setState(215);
 					_errHandler.sync(this);
 					_la = _input.LA(1);
 				}
-				setState(212);
+				setState(216);
 				match(RCURBR);
 				sout("}\n");
-				setState(236);
+				setState(240);
 				_errHandler.sync(this);
 				switch ( getInterpreter().adaptivePredict(_input,29,_ctx) ) {
 				case 1:
@@ -1108,17 +1143,17 @@ public class SwiftToJavaParser extends Parser {
 					break;
 				case 2:
 					{
-					setState(215);
+					setState(219);
 					match(ELSE);
-					setState(216);
+					setState(220);
 					match(LCURBR);
 					sout("\t\telse {\n\t\t\t");
-					setState(223);
+					setState(227);
 					_errHandler.sync(this);
 					_la = _input.LA(1);
 					while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << VAR) | (1L << FOR) | (1L << BREAK) | (1L << IF) | (1L << PRINT) | (1L << ID))) != 0)) {
 						{
-						setState(221);
+						setState(225);
 						_errHandler.sync(this);
 						switch (_input.LA(1)) {
 						case VAR:
@@ -1126,19 +1161,19 @@ public class SwiftToJavaParser extends Parser {
 						case PRINT:
 						case ID:
 							{
-							setState(218);
+							setState(222);
 							possibleBlocks();
 							}
 							break;
 						case IF:
 							{
-							setState(219);
+							setState(223);
 							ifStatCycle();
 							}
 							break;
 						case BREAK:
 							{
-							setState(220);
+							setState(224);
 							breakRule();
 							}
 							break;
@@ -1146,38 +1181,38 @@ public class SwiftToJavaParser extends Parser {
 							throw new NoViableAltException(this);
 						}
 						}
-						setState(225);
+						setState(229);
 						_errHandler.sync(this);
 						_la = _input.LA(1);
 					}
-					setState(226);
+					setState(230);
 					match(RCURBR);
 					sout("}\n");
 					}
 					break;
 				case 3:
 					{
-					setState(228);
+					setState(232);
 					match(ELSE);
 					sout("\t\telse \n\t\t\t");
-					setState(233);
+					setState(237);
 					_errHandler.sync(this);
 					switch ( getInterpreter().adaptivePredict(_input,28,_ctx) ) {
 					case 1:
 						{
-						setState(230);
+						setState(234);
 						possibleBlocks();
 						}
 						break;
 					case 2:
 						{
-						setState(231);
+						setState(235);
 						ifStatCycle();
 						}
 						break;
 					case 3:
 						{
-						setState(232);
+						setState(236);
 						breakRule();
 						}
 						break;
@@ -1240,26 +1275,29 @@ public class SwiftToJavaParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(240);
+			setState(244);
 			match(PRINT);
-			setState(241);
+			setState(245);
 			match(LBR);
 			sout("\t\tSystem.out.println(");
-			setState(247);
+			setState(251);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case STRING:
 				{
-				setState(243);
+				setState(247);
 				((PrintComContext)_localctx).STRING = match(STRING);
 				sout((((PrintComContext)_localctx).STRING!=null?((PrintComContext)_localctx).STRING.getText():null));
 				}
 				break;
 			case ID:
 				{
-				setState(245);
+				setState(249);
 				((PrintComContext)_localctx).ID = match(ID);
-				sout((((PrintComContext)_localctx).ID!=null?((PrintComContext)_localctx).ID.getText():null));
+
+				        exists((((PrintComContext)_localctx).ID!=null?((PrintComContext)_localctx).ID.getText():null));
+				        sout((((PrintComContext)_localctx).ID!=null?((PrintComContext)_localctx).ID.getText():null));
+				        
 				}
 				break;
 			case PLUS:
@@ -1268,39 +1306,42 @@ public class SwiftToJavaParser extends Parser {
 			default:
 				break;
 			}
-			setState(257);
+			setState(261);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while (_la==PLUS) {
 				{
-				setState(255);
+				setState(259);
 				_errHandler.sync(this);
 				switch ( getInterpreter().adaptivePredict(_input,32,_ctx) ) {
 				case 1:
 					{
-					setState(249);
+					setState(253);
 					match(PLUS);
-					setState(250);
+					setState(254);
 					((PrintComContext)_localctx).ID = match(ID);
-					sout(" + " + (((PrintComContext)_localctx).ID!=null?((PrintComContext)_localctx).ID.getText():null));
+
+					        exists((((PrintComContext)_localctx).ID!=null?((PrintComContext)_localctx).ID.getText():null));
+					        sout(" + " + (((PrintComContext)_localctx).ID!=null?((PrintComContext)_localctx).ID.getText():null));
+					        
 					}
 					break;
 				case 2:
 					{
-					setState(252);
+					setState(256);
 					match(PLUS);
-					setState(253);
+					setState(257);
 					((PrintComContext)_localctx).STRING = match(STRING);
 					sout(" + " + (((PrintComContext)_localctx).STRING!=null?((PrintComContext)_localctx).STRING.getText():null));
 					}
 					break;
 				}
 				}
-				setState(259);
+				setState(263);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
-			setState(260);
+			setState(264);
 			match(RBR);
 			sout(");\n");
 			}
@@ -1349,30 +1390,30 @@ public class SwiftToJavaParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(267);
+			setState(271);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case VAR:
 				{
-				setState(263);
+				setState(267);
 				initialization();
 				}
 				break;
 			case ID:
 				{
-				setState(264);
+				setState(268);
 				varChange();
 				}
 				break;
 			case PRINT:
 				{
-				setState(265);
+				setState(269);
 				printCom();
 				}
 				break;
 			case FOR:
 				{
-				setState(266);
+				setState(270);
 				forCycle();
 				}
 				break;
@@ -1436,20 +1477,20 @@ public class SwiftToJavaParser extends Parser {
 		BoolFormContext _localctx = new BoolFormContext(_ctx, getState());
 		enterRule(_localctx, 16, RULE_boolForm);
 		try {
-			setState(293);
+			setState(297);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case NOT:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(269);
+				setState(273);
 				match(NOT);
-				setState(270);
+				setState(274);
 				match(LBR);
 				sout("!(");
-				setState(272);
+				setState(276);
 				boolForm();
-				setState(273);
+				setState(277);
 				match(RBR);
 				sout(")");
 				}
@@ -1459,58 +1500,58 @@ public class SwiftToJavaParser extends Parser {
 			case FL:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(278);
+				setState(282);
 				_errHandler.sync(this);
 				switch ( getInterpreter().adaptivePredict(_input,35,_ctx) ) {
 				case 1:
 					{
-					setState(276);
+					setState(280);
 					intValue();
 					}
 					break;
 				case 2:
 					{
-					setState(277);
+					setState(281);
 					floatValue();
 					}
 					break;
 				}
-				setState(286);
+				setState(290);
 				_errHandler.sync(this);
 				switch (_input.LA(1)) {
 				case EQUAL:
 					{
-					setState(280);
+					setState(284);
 					((BoolFormContext)_localctx).s = match(EQUAL);
 					}
 					break;
 				case NEQUAL:
 					{
-					setState(281);
+					setState(285);
 					((BoolFormContext)_localctx).s = match(NEQUAL);
 					}
 					break;
 				case GREATER:
 					{
-					setState(282);
+					setState(286);
 					((BoolFormContext)_localctx).s = match(GREATER);
 					}
 					break;
 				case GROREQ:
 					{
-					setState(283);
+					setState(287);
 					((BoolFormContext)_localctx).s = match(GROREQ);
 					}
 					break;
 				case LESS:
 					{
-					setState(284);
+					setState(288);
 					((BoolFormContext)_localctx).s = match(LESS);
 					}
 					break;
 				case LESSOREQ:
 					{
-					setState(285);
+					setState(289);
 					((BoolFormContext)_localctx).s = match(LESSOREQ);
 					}
 					break;
@@ -1518,18 +1559,18 @@ public class SwiftToJavaParser extends Parser {
 					throw new NoViableAltException(this);
 				}
 				sout(" " + (((BoolFormContext)_localctx).s!=null?((BoolFormContext)_localctx).s.getText():null) + " ");
-				setState(291);
+				setState(295);
 				_errHandler.sync(this);
 				switch ( getInterpreter().adaptivePredict(_input,37,_ctx) ) {
 				case 1:
 					{
-					setState(289);
+					setState(293);
 					intValue();
 					}
 					break;
 				case 2:
 					{
-					setState(290);
+					setState(294);
 					floatValue();
 					}
 					break;
@@ -1573,7 +1614,7 @@ public class SwiftToJavaParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(295);
+			setState(299);
 			match(BREAK);
 			sout("\t\t\tbreak;\n");
 			}
@@ -1664,40 +1705,43 @@ public class SwiftToJavaParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(304);
+			setState(308);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case FL:
 				{
-				setState(298);
+				setState(302);
 				((FloatValueContext)_localctx).FL = match(FL);
 				sout((((FloatValueContext)_localctx).FL!=null?((FloatValueContext)_localctx).FL.getText():null) + "f");
 				}
 				break;
 			case INT:
 				{
-				setState(300);
+				setState(304);
 				((FloatValueContext)_localctx).INT = match(INT);
 				sout((((FloatValueContext)_localctx).INT!=null?((FloatValueContext)_localctx).INT.getText():null) + "f");
 				}
 				break;
 			case ID:
 				{
-				setState(302);
+				setState(306);
 				((FloatValueContext)_localctx).ID = match(ID);
-				sout((((FloatValueContext)_localctx).ID!=null?((FloatValueContext)_localctx).ID.getText():null));
+
+				    exists((((FloatValueContext)_localctx).ID!=null?((FloatValueContext)_localctx).ID.getText():null));
+				    sout((((FloatValueContext)_localctx).ID!=null?((FloatValueContext)_localctx).ID.getText():null));
+				    
 				}
 				break;
 			default:
 				throw new NoViableAltException(this);
 			}
-			setState(331);
+			setState(336);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << PLUS) | (1L << MINUS) | (1L << MULT) | (1L << MOD) | (1L << LBR))) != 0)) {
 				{
 				{
-				setState(327);
+				setState(332);
 				_errHandler.sync(this);
 				switch (_input.LA(1)) {
 				case PLUS:
@@ -1705,55 +1749,56 @@ public class SwiftToJavaParser extends Parser {
 				case MULT:
 				case MOD:
 					{
-					setState(310);
+					setState(314);
 					_errHandler.sync(this);
 					switch (_input.LA(1)) {
 					case PLUS:
 						{
-						setState(306);
+						setState(310);
 						((FloatValueContext)_localctx).s = match(PLUS);
 						}
 						break;
 					case MINUS:
 						{
-						setState(307);
+						setState(311);
 						((FloatValueContext)_localctx).s = match(MINUS);
 						}
 						break;
 					case MULT:
 						{
-						setState(308);
+						setState(312);
 						((FloatValueContext)_localctx).s = match(MULT);
 						}
 						break;
 					case MOD:
 						{
-						setState(309);
+						setState(313);
 						((FloatValueContext)_localctx).s = match(MOD);
 						}
 						break;
 					default:
 						throw new NoViableAltException(this);
 					}
-					setState(315);
+					setState(320);
 					_errHandler.sync(this);
 					switch (_input.LA(1)) {
 					case FL:
 						{
-						setState(312);
+						setState(316);
 						((FloatValueContext)_localctx).a = match(FL);
 						}
 						break;
 					case INT:
 						{
-						setState(313);
+						setState(317);
 						((FloatValueContext)_localctx).a = match(INT);
 						}
 						break;
 					case ID:
 						{
-						setState(314);
+						setState(318);
 						((FloatValueContext)_localctx).a = match(ID);
+						exists((((FloatValueContext)_localctx).a!=null?((FloatValueContext)_localctx).a.getText():null));
 						}
 						break;
 					default:
@@ -1764,26 +1809,26 @@ public class SwiftToJavaParser extends Parser {
 					break;
 				case LBR:
 					{
-					setState(318);
+					setState(323);
 					match(LBR);
 					sout(" (");
-					setState(322);
+					setState(327);
 					_errHandler.sync(this);
 					switch ( getInterpreter().adaptivePredict(_input,42,_ctx) ) {
 					case 1:
 						{
-						setState(320);
+						setState(325);
 						intValue();
 						}
 						break;
 					case 2:
 						{
-						setState(321);
+						setState(326);
 						floatValue();
 						}
 						break;
 					}
-					setState(324);
+					setState(329);
 					match(RBR);
 					sout(")");
 					}
@@ -1793,7 +1838,7 @@ public class SwiftToJavaParser extends Parser {
 				}
 				}
 				}
-				setState(333);
+				setState(338);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
@@ -1884,32 +1929,33 @@ public class SwiftToJavaParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(336);
+			setState(342);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case INT:
 				{
-				setState(334);
+				setState(339);
 				((IntValueContext)_localctx).a = match(INT);
 				}
 				break;
 			case ID:
 				{
-				setState(335);
+				setState(340);
 				((IntValueContext)_localctx).a = match(ID);
+				exists((((IntValueContext)_localctx).a!=null?((IntValueContext)_localctx).a.getText():null));
 				}
 				break;
 			default:
 				throw new NoViableAltException(this);
 			}
 			sout((((IntValueContext)_localctx).a!=null?((IntValueContext)_localctx).a.getText():null));
-			setState(370);
+			setState(378);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << PLUS) | (1L << MINUS) | (1L << XOR) | (1L << AND) | (1L << OR) | (1L << MULT) | (1L << MOD) | (1L << LBR))) != 0)) {
 				{
 				{
-				setState(366);
+				setState(374);
 				_errHandler.sync(this);
 				switch (_input.LA(1)) {
 				case PLUS:
@@ -1917,49 +1963,50 @@ public class SwiftToJavaParser extends Parser {
 				case MULT:
 				case MOD:
 					{
-					setState(343);
+					setState(349);
 					_errHandler.sync(this);
 					switch (_input.LA(1)) {
 					case PLUS:
 						{
-						setState(339);
+						setState(345);
 						((IntValueContext)_localctx).s = match(PLUS);
 						}
 						break;
 					case MINUS:
 						{
-						setState(340);
+						setState(346);
 						((IntValueContext)_localctx).s = match(MINUS);
 						}
 						break;
 					case MULT:
 						{
-						setState(341);
+						setState(347);
 						((IntValueContext)_localctx).s = match(MULT);
 						}
 						break;
 					case MOD:
 						{
-						setState(342);
+						setState(348);
 						((IntValueContext)_localctx).s = match(MOD);
 						}
 						break;
 					default:
 						throw new NoViableAltException(this);
 					}
-					setState(347);
+					setState(354);
 					_errHandler.sync(this);
 					switch (_input.LA(1)) {
 					case INT:
 						{
-						setState(345);
+						setState(351);
 						((IntValueContext)_localctx).a = match(INT);
 						}
 						break;
 					case ID:
 						{
-						setState(346);
+						setState(352);
 						((IntValueContext)_localctx).a = match(ID);
+						exists((((IntValueContext)_localctx).a!=null?((IntValueContext)_localctx).a.getText():null));
 						}
 						break;
 					default:
@@ -1972,43 +2019,44 @@ public class SwiftToJavaParser extends Parser {
 				case AND:
 				case OR:
 					{
-					setState(353);
+					setState(360);
 					_errHandler.sync(this);
 					switch (_input.LA(1)) {
 					case OR:
 						{
-						setState(350);
+						setState(357);
 						((IntValueContext)_localctx).s = match(OR);
 						}
 						break;
 					case AND:
 						{
-						setState(351);
+						setState(358);
 						((IntValueContext)_localctx).s = match(AND);
 						}
 						break;
 					case XOR:
 						{
-						setState(352);
+						setState(359);
 						((IntValueContext)_localctx).s = match(XOR);
 						}
 						break;
 					default:
 						throw new NoViableAltException(this);
 					}
-					setState(357);
+					setState(365);
 					_errHandler.sync(this);
 					switch (_input.LA(1)) {
 					case INT:
 						{
-						setState(355);
+						setState(362);
 						((IntValueContext)_localctx).a = match(INT);
 						}
 						break;
 					case ID:
 						{
-						setState(356);
+						setState(363);
 						((IntValueContext)_localctx).a = match(ID);
+						exists((((IntValueContext)_localctx).a!=null?((IntValueContext)_localctx).a.getText():null));
 						}
 						break;
 					default:
@@ -2019,12 +2067,12 @@ public class SwiftToJavaParser extends Parser {
 					break;
 				case LBR:
 					{
-					setState(360);
+					setState(368);
 					match(LBR);
 					sout(" (");
-					setState(362);
+					setState(370);
 					intValue();
-					setState(363);
+					setState(371);
 					match(RBR);
 					sout(")");
 					}
@@ -2034,7 +2082,7 @@ public class SwiftToJavaParser extends Parser {
 				}
 				}
 				}
-				setState(372);
+				setState(380);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
@@ -2052,146 +2100,149 @@ public class SwiftToJavaParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\'\u0178\4\2\t\2\4"+
+		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\'\u0180\4\2\t\2\4"+
 		"\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13\t"+
 		"\13\4\f\t\f\4\r\t\r\3\2\3\2\3\2\3\2\3\2\7\2 \n\2\f\2\16\2#\13\2\3\3\3"+
 		"\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\5\3"+
-		"\67\n\3\3\4\3\4\3\4\3\4\3\4\5\4>\n\4\3\4\3\4\3\5\3\5\3\5\3\5\3\5\5\5G"+
-		"\n\5\3\5\3\5\3\5\5\5L\n\5\3\5\3\5\3\5\3\5\3\5\3\5\3\5\5\5U\n\5\3\5\3\5"+
-		"\3\5\5\5Z\n\5\3\5\3\5\5\5^\n\5\3\5\3\5\3\5\7\5c\n\5\f\5\16\5f\13\5\3\5"+
-		"\3\5\3\5\3\6\3\6\3\6\3\6\3\6\3\6\3\6\3\6\3\6\3\6\5\6u\n\6\3\6\3\6\3\6"+
-		"\5\6z\n\6\3\6\3\6\3\6\3\6\3\6\3\6\3\6\3\6\3\6\3\6\3\6\3\6\5\6\u0088\n"+
-		"\6\3\6\3\6\3\6\3\6\7\6\u008e\n\6\f\6\16\6\u0091\13\6\3\6\3\6\3\6\3\6\3"+
-		"\6\3\6\3\6\3\6\7\6\u009b\n\6\f\6\16\6\u009e\13\6\3\6\3\6\3\6\3\6\3\6\3"+
-		"\6\5\6\u00a6\n\6\3\6\5\6\u00a9\n\6\5\6\u00ab\n\6\3\7\3\7\3\7\3\7\3\7\3"+
-		"\7\3\7\3\7\3\7\3\7\5\7\u00b7\n\7\3\7\3\7\3\7\3\7\5\7\u00bd\n\7\3\7\3\7"+
-		"\3\7\3\7\3\7\3\7\3\7\3\7\3\7\3\7\3\7\3\7\5\7\u00cb\n\7\3\7\3\7\3\7\3\7"+
-		"\3\7\7\7\u00d2\n\7\f\7\16\7\u00d5\13\7\3\7\3\7\3\7\3\7\3\7\3\7\3\7\3\7"+
-		"\3\7\7\7\u00e0\n\7\f\7\16\7\u00e3\13\7\3\7\3\7\3\7\3\7\3\7\3\7\3\7\5\7"+
-		"\u00ec\n\7\3\7\5\7\u00ef\n\7\5\7\u00f1\n\7\3\b\3\b\3\b\3\b\3\b\3\b\3\b"+
-		"\5\b\u00fa\n\b\3\b\3\b\3\b\3\b\3\b\3\b\7\b\u0102\n\b\f\b\16\b\u0105\13"+
-		"\b\3\b\3\b\3\b\3\t\3\t\3\t\3\t\5\t\u010e\n\t\3\n\3\n\3\n\3\n\3\n\3\n\3"+
-		"\n\3\n\3\n\5\n\u0119\n\n\3\n\3\n\3\n\3\n\3\n\3\n\5\n\u0121\n\n\3\n\3\n"+
-		"\3\n\5\n\u0126\n\n\5\n\u0128\n\n\3\13\3\13\3\13\3\f\3\f\3\f\3\f\3\f\3"+
-		"\f\5\f\u0133\n\f\3\f\3\f\3\f\3\f\5\f\u0139\n\f\3\f\3\f\3\f\5\f\u013e\n"+
-		"\f\3\f\3\f\3\f\3\f\3\f\5\f\u0145\n\f\3\f\3\f\3\f\5\f\u014a\n\f\7\f\u014c"+
-		"\n\f\f\f\16\f\u014f\13\f\3\r\3\r\5\r\u0153\n\r\3\r\3\r\3\r\3\r\3\r\5\r"+
-		"\u015a\n\r\3\r\3\r\5\r\u015e\n\r\3\r\3\r\3\r\3\r\5\r\u0164\n\r\3\r\3\r"+
-		"\5\r\u0168\n\r\3\r\3\r\3\r\3\r\3\r\3\r\3\r\5\r\u0171\n\r\7\r\u0173\n\r"+
-		"\f\r\16\r\u0176\13\r\3\r\2\2\16\2\4\6\b\n\f\16\20\22\24\26\30\2\2\2\u01bc"+
-		"\2!\3\2\2\2\4\66\3\2\2\2\68\3\2\2\2\b]\3\2\2\2\n\u00aa\3\2\2\2\f\u00f0"+
-		"\3\2\2\2\16\u00f2\3\2\2\2\20\u010d\3\2\2\2\22\u0127\3\2\2\2\24\u0129\3"+
-		"\2\2\2\26\u0132\3\2\2\2\30\u0152\3\2\2\2\32 \5\4\3\2\33 \5\b\5\2\34 \5"+
-		"\n\6\2\35 \5\6\4\2\36 \5\16\b\2\37\32\3\2\2\2\37\33\3\2\2\2\37\34\3\2"+
-		"\2\2\37\35\3\2\2\2\37\36\3\2\2\2 #\3\2\2\2!\37\3\2\2\2!\"\3\2\2\2\"\3"+
-		"\3\2\2\2#!\3\2\2\2$%\7\3\2\2%&\7\37\2\2&\'\7\34\2\2\'(\7\13\2\2()\7\f"+
-		"\2\2)*\b\3\1\2*+\5\26\f\2+,\b\3\1\2,\67\3\2\2\2-.\7\3\2\2./\7\37\2\2/"+
-		"\60\7\34\2\2\60\61\7\n\2\2\61\62\7\f\2\2\62\63\b\3\1\2\63\64\5\30\r\2"+
-		"\64\65\b\3\1\2\65\67\3\2\2\2\66$\3\2\2\2\66-\3\2\2\2\67\5\3\2\2\289\7"+
-		"\37\2\29:\7\f\2\2:=\b\4\1\2;>\5\30\r\2<>\5\26\f\2=;\3\2\2\2=<\3\2\2\2"+
-		">?\3\2\2\2?@\b\4\1\2@\7\3\2\2\2AB\7\4\2\2BC\7\37\2\2CF\7\5\2\2DG\7 \2"+
-		"\2EG\7\37\2\2FD\3\2\2\2FE\3\2\2\2GH\3\2\2\2HK\7\35\2\2IL\7 \2\2JL\7\37"+
-		"\2\2KI\3\2\2\2KJ\3\2\2\2LM\3\2\2\2MN\7#\2\2N^\b\5\1\2OP\7\4\2\2PQ\7\37"+
-		"\2\2QT\7\5\2\2RU\7 \2\2SU\7\37\2\2TR\3\2\2\2TS\3\2\2\2UV\3\2\2\2VY\7\36"+
-		"\2\2WZ\7 \2\2XZ\7\37\2\2YW\3\2\2\2YX\3\2\2\2Z[\3\2\2\2[\\\7#\2\2\\^\b"+
-		"\5\1\2]A\3\2\2\2]O\3\2\2\2^d\3\2\2\2_c\5\20\t\2`c\5\f\7\2ac\5\24\13\2"+
-		"b_\3\2\2\2b`\3\2\2\2ba\3\2\2\2cf\3\2\2\2db\3\2\2\2de\3\2\2\2eg\3\2\2\2"+
-		"fd\3\2\2\2gh\7$\2\2hi\b\5\1\2i\t\3\2\2\2jt\7\7\2\2kl\7%\2\2lm\b\6\1\2"+
-		"mn\5\22\n\2no\7&\2\2op\b\6\1\2pu\3\2\2\2qr\5\22\n\2rs\7&\2\2su\3\2\2\2"+
-		"tk\3\2\2\2tq\3\2\2\2uv\3\2\2\2vy\b\6\1\2wz\5\20\t\2xz\5\n\6\2yw\3\2\2"+
-		"\2yx\3\2\2\2yz\3\2\2\2z{\3\2\2\2{|\b\6\1\2|\u00ab\3\2\2\2}\u0087\7\7\2"+
-		"\2~\177\7%\2\2\177\u0080\b\6\1\2\u0080\u0081\5\22\n\2\u0081\u0082\7&\2"+
-		"\2\u0082\u0083\b\6\1\2\u0083\u0088\3\2\2\2\u0084\u0085\5\22\n\2\u0085"+
-		"\u0086\7&\2\2\u0086\u0088\3\2\2\2\u0087~\3\2\2\2\u0087\u0084\3\2\2\2\u0088"+
-		"\u0089\3\2\2\2\u0089\u008a\7#\2\2\u008a\u008f\b\6\1\2\u008b\u008e\5\20"+
-		"\t\2\u008c\u008e\5\n\6\2\u008d\u008b\3\2\2\2\u008d\u008c\3\2\2\2\u008e"+
-		"\u0091\3\2\2\2\u008f\u008d\3\2\2\2\u008f\u0090\3\2\2\2\u0090\u0092\3\2"+
-		"\2\2\u0091\u008f\3\2\2\2\u0092\u0093\7$\2\2\u0093\u00a8\b\6\1\2\u0094"+
-		"\u00a9\3\2\2\2\u0095\u0096\7\b\2\2\u0096\u0097\7#\2\2\u0097\u009c\b\6"+
-		"\1\2\u0098\u009b\5\20\t\2\u0099\u009b\5\n\6\2\u009a\u0098\3\2\2\2\u009a"+
-		"\u0099\3\2\2\2\u009b\u009e\3\2\2\2\u009c\u009a\3\2\2\2\u009c\u009d\3\2"+
-		"\2\2\u009d\u009f\3\2\2\2\u009e\u009c\3\2\2\2\u009f\u00a0\7$\2\2\u00a0"+
-		"\u00a9\b\6\1\2\u00a1\u00a2\7\b\2\2\u00a2\u00a5\b\6\1\2\u00a3\u00a6\5\20"+
-		"\t\2\u00a4\u00a6\5\n\6\2\u00a5\u00a3\3\2\2\2\u00a5\u00a4\3\2\2\2\u00a5"+
-		"\u00a6\3\2\2\2\u00a6\u00a7\3\2\2\2\u00a7\u00a9\b\6\1\2\u00a8\u0094\3\2"+
-		"\2\2\u00a8\u0095\3\2\2\2\u00a8\u00a1\3\2\2\2\u00a9\u00ab\3\2\2\2\u00aa"+
-		"j\3\2\2\2\u00aa}\3\2\2\2\u00ab\13\3\2\2\2\u00ac\u00b6\7\7\2\2\u00ad\u00ae"+
-		"\7%\2\2\u00ae\u00af\b\7\1\2\u00af\u00b0\5\22\n\2\u00b0\u00b1\7&\2\2\u00b1"+
-		"\u00b2\b\7\1\2\u00b2\u00b7\3\2\2\2\u00b3\u00b4\5\22\n\2\u00b4\u00b5\7"+
-		"&\2\2\u00b5\u00b7\3\2\2\2\u00b6\u00ad\3\2\2\2\u00b6\u00b3\3\2\2\2\u00b7"+
-		"\u00b8\3\2\2\2\u00b8\u00bc\b\7\1\2\u00b9\u00bd\5\20\t\2\u00ba\u00bd\5"+
-		"\f\7\2\u00bb\u00bd\5\24\13\2\u00bc\u00b9\3\2\2\2\u00bc\u00ba\3\2\2\2\u00bc"+
-		"\u00bb\3\2\2\2\u00bc\u00bd\3\2\2\2\u00bd\u00be\3\2\2\2\u00be\u00bf\b\7"+
-		"\1\2\u00bf\u00f1\3\2\2\2\u00c0\u00ca\7\7\2\2\u00c1\u00c2\7%\2\2\u00c2"+
-		"\u00c3\b\7\1\2\u00c3\u00c4\5\22\n\2\u00c4\u00c5\7&\2\2\u00c5\u00c6\b\7"+
-		"\1\2\u00c6\u00cb\3\2\2\2\u00c7\u00c8\5\22\n\2\u00c8\u00c9\7&\2\2\u00c9"+
-		"\u00cb\3\2\2\2\u00ca\u00c1\3\2\2\2\u00ca\u00c7\3\2\2\2\u00cb\u00cc\3\2"+
-		"\2\2\u00cc\u00cd\7#\2\2\u00cd\u00d3\b\7\1\2\u00ce\u00d2\5\20\t\2\u00cf"+
-		"\u00d2\5\f\7\2\u00d0\u00d2\5\24\13\2\u00d1\u00ce\3\2\2\2\u00d1\u00cf\3"+
-		"\2\2\2\u00d1\u00d0\3\2\2\2\u00d2\u00d5\3\2\2\2\u00d3\u00d1\3\2\2\2\u00d3"+
-		"\u00d4\3\2\2\2\u00d4\u00d6\3\2\2\2\u00d5\u00d3\3\2\2\2\u00d6\u00d7\7$"+
-		"\2\2\u00d7\u00ee\b\7\1\2\u00d8\u00ef\3\2\2\2\u00d9\u00da\7\b\2\2\u00da"+
-		"\u00db\7#\2\2\u00db\u00e1\b\7\1\2\u00dc\u00e0\5\20\t\2\u00dd\u00e0\5\f"+
-		"\7\2\u00de\u00e0\5\24\13\2\u00df\u00dc\3\2\2\2\u00df\u00dd\3\2\2\2\u00df"+
-		"\u00de\3\2\2\2\u00e0\u00e3\3\2\2\2\u00e1\u00df\3\2\2\2\u00e1\u00e2\3\2"+
-		"\2\2\u00e2\u00e4\3\2\2\2\u00e3\u00e1\3\2\2\2\u00e4\u00e5\7$\2\2\u00e5"+
-		"\u00ef\b\7\1\2\u00e6\u00e7\7\b\2\2\u00e7\u00eb\b\7\1\2\u00e8\u00ec\5\20"+
-		"\t\2\u00e9\u00ec\5\f\7\2\u00ea\u00ec\5\24\13\2\u00eb\u00e8\3\2\2\2\u00eb"+
-		"\u00e9\3\2\2\2\u00eb\u00ea\3\2\2\2\u00eb\u00ec\3\2\2\2\u00ec\u00ed\3\2"+
-		"\2\2\u00ed\u00ef\b\7\1\2\u00ee\u00d8\3\2\2\2\u00ee\u00d9\3\2\2\2\u00ee"+
-		"\u00e6\3\2\2\2\u00ef\u00f1\3\2\2\2\u00f0\u00ac\3\2\2\2\u00f0\u00c0\3\2"+
-		"\2\2\u00f1\r\3\2\2\2\u00f2\u00f3\7\t\2\2\u00f3\u00f4\7%\2\2\u00f4\u00f9"+
-		"\b\b\1\2\u00f5\u00f6\7\"\2\2\u00f6\u00fa\b\b\1\2\u00f7\u00f8\7\37\2\2"+
-		"\u00f8\u00fa\b\b\1\2\u00f9\u00f5\3\2\2\2\u00f9\u00f7\3\2\2\2\u00f9\u00fa"+
-		"\3\2\2\2\u00fa\u0103\3\2\2\2\u00fb\u00fc\7\r\2\2\u00fc\u00fd\7\37\2\2"+
-		"\u00fd\u0102\b\b\1\2\u00fe\u00ff\7\r\2\2\u00ff\u0100\7\"\2\2\u0100\u0102"+
-		"\b\b\1\2\u0101\u00fb\3\2\2\2\u0101\u00fe\3\2\2\2\u0102\u0105\3\2\2\2\u0103"+
-		"\u0101\3\2\2\2\u0103\u0104\3\2\2\2\u0104\u0106\3\2\2\2\u0105\u0103\3\2"+
-		"\2\2\u0106\u0107\7&\2\2\u0107\u0108\b\b\1\2\u0108\17\3\2\2\2\u0109\u010e"+
-		"\5\4\3\2\u010a\u010e\5\6\4\2\u010b\u010e\5\16\b\2\u010c\u010e\5\b\5\2"+
-		"\u010d\u0109\3\2\2\2\u010d\u010a\3\2\2\2\u010d\u010b\3\2\2\2\u010d\u010c"+
-		"\3\2\2\2\u010e\21\3\2\2\2\u010f\u0110\7\30\2\2\u0110\u0111\7%\2\2\u0111"+
-		"\u0112\b\n\1\2\u0112\u0113\5\22\n\2\u0113\u0114\7&\2\2\u0114\u0115\b\n"+
-		"\1\2\u0115\u0128\3\2\2\2\u0116\u0119\5\30\r\2\u0117\u0119\5\26\f\2\u0118"+
-		"\u0116\3\2\2\2\u0118\u0117\3\2\2\2\u0119\u0120\3\2\2\2\u011a\u0121\7\17"+
-		"\2\2\u011b\u0121\7\20\2\2\u011c\u0121\7\21\2\2\u011d\u0121\7\22\2\2\u011e"+
-		"\u0121\7\23\2\2\u011f\u0121\7\24\2\2\u0120\u011a\3\2\2\2\u0120\u011b\3"+
-		"\2\2\2\u0120\u011c\3\2\2\2\u0120\u011d\3\2\2\2\u0120\u011e\3\2\2\2\u0120"+
-		"\u011f\3\2\2\2\u0121\u0122\3\2\2\2\u0122\u0125\b\n\1\2\u0123\u0126\5\30"+
-		"\r\2\u0124\u0126\5\26\f\2\u0125\u0123\3\2\2\2\u0125\u0124\3\2\2\2\u0126"+
-		"\u0128\3\2\2\2\u0127\u010f\3\2\2\2\u0127\u0118\3\2\2\2\u0128\23\3\2\2"+
-		"\2\u0129\u012a\7\6\2\2\u012a\u012b\b\13\1\2\u012b\25\3\2\2\2\u012c\u012d"+
-		"\7!\2\2\u012d\u0133\b\f\1\2\u012e\u012f\7 \2\2\u012f\u0133\b\f\1\2\u0130"+
-		"\u0131\7\37\2\2\u0131\u0133\b\f\1\2\u0132\u012c\3\2\2\2\u0132\u012e\3"+
-		"\2\2\2\u0132\u0130\3\2\2\2\u0133\u014d\3\2\2\2\u0134\u0139\7\r\2\2\u0135"+
-		"\u0139\7\16\2\2\u0136\u0139\7\31\2\2\u0137\u0139\7\32\2\2\u0138\u0134"+
-		"\3\2\2\2\u0138\u0135\3\2\2\2\u0138\u0136\3\2\2\2\u0138\u0137\3\2\2\2\u0139"+
-		"\u013d\3\2\2\2\u013a\u013e\7!\2\2\u013b\u013e\7 \2\2\u013c\u013e\7\37"+
-		"\2\2\u013d\u013a\3\2\2\2\u013d\u013b\3\2\2\2\u013d\u013c\3\2\2\2\u013e"+
-		"\u013f\3\2\2\2\u013f\u014a\b\f\1\2\u0140\u0141\7%\2\2\u0141\u0144\b\f"+
-		"\1\2\u0142\u0145\5\30\r\2\u0143\u0145\5\26\f\2\u0144\u0142\3\2\2\2\u0144"+
-		"\u0143\3\2\2\2\u0145\u0146\3\2\2\2\u0146\u0147\7&\2\2\u0147\u0148\b\f"+
-		"\1\2\u0148\u014a\3\2\2\2\u0149\u0138\3\2\2\2\u0149\u0140\3\2\2\2\u014a"+
-		"\u014c\3\2\2\2\u014b\u0149\3\2\2\2\u014c\u014f\3\2\2\2\u014d\u014b\3\2"+
-		"\2\2\u014d\u014e\3\2\2\2\u014e\27\3\2\2\2\u014f\u014d\3\2\2\2\u0150\u0153"+
-		"\7 \2\2\u0151\u0153\7\37\2\2\u0152\u0150\3\2\2\2\u0152\u0151\3\2\2\2\u0153"+
-		"\u0154\3\2\2\2\u0154\u0174\b\r\1\2\u0155\u015a\7\r\2\2\u0156\u015a\7\16"+
-		"\2\2\u0157\u015a\7\31\2\2\u0158\u015a\7\32\2\2\u0159\u0155\3\2\2\2\u0159"+
-		"\u0156\3\2\2\2\u0159\u0157\3\2\2\2\u0159\u0158\3\2\2\2\u015a\u015d\3\2"+
-		"\2\2\u015b\u015e\7 \2\2\u015c\u015e\7\37\2\2\u015d\u015b\3\2\2\2\u015d"+
-		"\u015c\3\2\2\2\u015e\u015f\3\2\2\2\u015f\u0171\b\r\1\2\u0160\u0164\7\27"+
-		"\2\2\u0161\u0164\7\26\2\2\u0162\u0164\7\25\2\2\u0163\u0160\3\2\2\2\u0163"+
-		"\u0161\3\2\2\2\u0163\u0162\3\2\2\2\u0164\u0167\3\2\2\2\u0165\u0168\7 "+
-		"\2\2\u0166\u0168\7\37\2\2\u0167\u0165\3\2\2\2\u0167\u0166\3\2\2\2\u0168"+
-		"\u0169\3\2\2\2\u0169\u0171\b\r\1\2\u016a\u016b\7%\2\2\u016b\u016c\b\r"+
-		"\1\2\u016c\u016d\5\30\r\2\u016d\u016e\7&\2\2\u016e\u016f\b\r\1\2\u016f"+
-		"\u0171\3\2\2\2\u0170\u0159\3\2\2\2\u0170\u0163\3\2\2\2\u0170\u016a\3\2"+
-		"\2\2\u0171\u0173\3\2\2\2\u0172\u0170\3\2\2\2\u0173\u0176\3\2\2\2\u0174"+
-		"\u0172\3\2\2\2\u0174\u0175\3\2\2\2\u0175\31\3\2\2\2\u0176\u0174\3\2\2"+
-		"\2\66\37!\66=FKTY]bdty\u0087\u008d\u008f\u009a\u009c\u00a5\u00a8\u00aa"+
-		"\u00b6\u00bc\u00ca\u00d1\u00d3\u00df\u00e1\u00eb\u00ee\u00f0\u00f9\u0101"+
-		"\u0103\u010d\u0118\u0120\u0125\u0127\u0132\u0138\u013d\u0144\u0149\u014d"+
-		"\u0152\u0159\u015d\u0163\u0167\u0170\u0174";
+		"\67\n\3\3\4\3\4\3\4\3\4\3\4\5\4>\n\4\3\4\3\4\3\5\3\5\3\5\3\5\3\5\3\5\5"+
+		"\5H\n\5\3\5\3\5\3\5\3\5\5\5N\n\5\3\5\3\5\3\5\3\5\3\5\3\5\3\5\3\5\5\5X"+
+		"\n\5\3\5\3\5\3\5\3\5\5\5^\n\5\3\5\3\5\5\5b\n\5\3\5\3\5\3\5\7\5g\n\5\f"+
+		"\5\16\5j\13\5\3\5\3\5\3\5\3\6\3\6\3\6\3\6\3\6\3\6\3\6\3\6\3\6\3\6\5\6"+
+		"y\n\6\3\6\3\6\3\6\5\6~\n\6\3\6\3\6\3\6\3\6\3\6\3\6\3\6\3\6\3\6\3\6\3\6"+
+		"\3\6\5\6\u008c\n\6\3\6\3\6\3\6\3\6\7\6\u0092\n\6\f\6\16\6\u0095\13\6\3"+
+		"\6\3\6\3\6\3\6\3\6\3\6\3\6\3\6\7\6\u009f\n\6\f\6\16\6\u00a2\13\6\3\6\3"+
+		"\6\3\6\3\6\3\6\3\6\5\6\u00aa\n\6\3\6\5\6\u00ad\n\6\5\6\u00af\n\6\3\7\3"+
+		"\7\3\7\3\7\3\7\3\7\3\7\3\7\3\7\3\7\5\7\u00bb\n\7\3\7\3\7\3\7\3\7\5\7\u00c1"+
+		"\n\7\3\7\3\7\3\7\3\7\3\7\3\7\3\7\3\7\3\7\3\7\3\7\3\7\5\7\u00cf\n\7\3\7"+
+		"\3\7\3\7\3\7\3\7\7\7\u00d6\n\7\f\7\16\7\u00d9\13\7\3\7\3\7\3\7\3\7\3\7"+
+		"\3\7\3\7\3\7\3\7\7\7\u00e4\n\7\f\7\16\7\u00e7\13\7\3\7\3\7\3\7\3\7\3\7"+
+		"\3\7\3\7\5\7\u00f0\n\7\3\7\5\7\u00f3\n\7\5\7\u00f5\n\7\3\b\3\b\3\b\3\b"+
+		"\3\b\3\b\3\b\5\b\u00fe\n\b\3\b\3\b\3\b\3\b\3\b\3\b\7\b\u0106\n\b\f\b\16"+
+		"\b\u0109\13\b\3\b\3\b\3\b\3\t\3\t\3\t\3\t\5\t\u0112\n\t\3\n\3\n\3\n\3"+
+		"\n\3\n\3\n\3\n\3\n\3\n\5\n\u011d\n\n\3\n\3\n\3\n\3\n\3\n\3\n\5\n\u0125"+
+		"\n\n\3\n\3\n\3\n\5\n\u012a\n\n\5\n\u012c\n\n\3\13\3\13\3\13\3\f\3\f\3"+
+		"\f\3\f\3\f\3\f\5\f\u0137\n\f\3\f\3\f\3\f\3\f\5\f\u013d\n\f\3\f\3\f\3\f"+
+		"\3\f\5\f\u0143\n\f\3\f\3\f\3\f\3\f\3\f\5\f\u014a\n\f\3\f\3\f\3\f\5\f\u014f"+
+		"\n\f\7\f\u0151\n\f\f\f\16\f\u0154\13\f\3\r\3\r\3\r\5\r\u0159\n\r\3\r\3"+
+		"\r\3\r\3\r\3\r\5\r\u0160\n\r\3\r\3\r\3\r\5\r\u0165\n\r\3\r\3\r\3\r\3\r"+
+		"\5\r\u016b\n\r\3\r\3\r\3\r\5\r\u0170\n\r\3\r\3\r\3\r\3\r\3\r\3\r\3\r\5"+
+		"\r\u0179\n\r\7\r\u017b\n\r\f\r\16\r\u017e\13\r\3\r\2\2\16\2\4\6\b\n\f"+
+		"\16\20\22\24\26\30\2\2\2\u01c4\2!\3\2\2\2\4\66\3\2\2\2\68\3\2\2\2\ba\3"+
+		"\2\2\2\n\u00ae\3\2\2\2\f\u00f4\3\2\2\2\16\u00f6\3\2\2\2\20\u0111\3\2\2"+
+		"\2\22\u012b\3\2\2\2\24\u012d\3\2\2\2\26\u0136\3\2\2\2\30\u0158\3\2\2\2"+
+		"\32 \5\4\3\2\33 \5\b\5\2\34 \5\n\6\2\35 \5\6\4\2\36 \5\16\b\2\37\32\3"+
+		"\2\2\2\37\33\3\2\2\2\37\34\3\2\2\2\37\35\3\2\2\2\37\36\3\2\2\2 #\3\2\2"+
+		"\2!\37\3\2\2\2!\"\3\2\2\2\"\3\3\2\2\2#!\3\2\2\2$%\7\3\2\2%&\7\37\2\2&"+
+		"\'\7\34\2\2\'(\7\13\2\2()\7\f\2\2)*\b\3\1\2*+\5\26\f\2+,\b\3\1\2,\67\3"+
+		"\2\2\2-.\7\3\2\2./\7\37\2\2/\60\7\34\2\2\60\61\7\n\2\2\61\62\7\f\2\2\62"+
+		"\63\b\3\1\2\63\64\5\30\r\2\64\65\b\3\1\2\65\67\3\2\2\2\66$\3\2\2\2\66"+
+		"-\3\2\2\2\67\5\3\2\2\289\7\37\2\29:\7\f\2\2:=\b\4\1\2;>\5\30\r\2<>\5\26"+
+		"\f\2=;\3\2\2\2=<\3\2\2\2>?\3\2\2\2?@\b\4\1\2@\7\3\2\2\2AB\7\4\2\2BC\7"+
+		"\37\2\2CG\7\5\2\2DH\7 \2\2EF\7\37\2\2FH\b\5\1\2GD\3\2\2\2GE\3\2\2\2HI"+
+		"\3\2\2\2IM\7\35\2\2JN\7 \2\2KL\7\37\2\2LN\b\5\1\2MJ\3\2\2\2MK\3\2\2\2"+
+		"NO\3\2\2\2OP\7#\2\2Pb\b\5\1\2QR\7\4\2\2RS\7\37\2\2SW\7\5\2\2TX\7 \2\2"+
+		"UV\7\37\2\2VX\b\5\1\2WT\3\2\2\2WU\3\2\2\2XY\3\2\2\2Y]\7\36\2\2Z^\7 \2"+
+		"\2[\\\7\37\2\2\\^\b\5\1\2]Z\3\2\2\2][\3\2\2\2^_\3\2\2\2_`\7#\2\2`b\b\5"+
+		"\1\2aA\3\2\2\2aQ\3\2\2\2bh\3\2\2\2cg\5\20\t\2dg\5\f\7\2eg\5\24\13\2fc"+
+		"\3\2\2\2fd\3\2\2\2fe\3\2\2\2gj\3\2\2\2hf\3\2\2\2hi\3\2\2\2ik\3\2\2\2j"+
+		"h\3\2\2\2kl\7$\2\2lm\b\5\1\2m\t\3\2\2\2nx\7\7\2\2op\7%\2\2pq\b\6\1\2q"+
+		"r\5\22\n\2rs\7&\2\2st\b\6\1\2ty\3\2\2\2uv\5\22\n\2vw\7&\2\2wy\3\2\2\2"+
+		"xo\3\2\2\2xu\3\2\2\2yz\3\2\2\2z}\b\6\1\2{~\5\20\t\2|~\5\n\6\2}{\3\2\2"+
+		"\2}|\3\2\2\2}~\3\2\2\2~\177\3\2\2\2\177\u0080\b\6\1\2\u0080\u00af\3\2"+
+		"\2\2\u0081\u008b\7\7\2\2\u0082\u0083\7%\2\2\u0083\u0084\b\6\1\2\u0084"+
+		"\u0085\5\22\n\2\u0085\u0086\7&\2\2\u0086\u0087\b\6\1\2\u0087\u008c\3\2"+
+		"\2\2\u0088\u0089\5\22\n\2\u0089\u008a\7&\2\2\u008a\u008c\3\2\2\2\u008b"+
+		"\u0082\3\2\2\2\u008b\u0088\3\2\2\2\u008c\u008d\3\2\2\2\u008d\u008e\7#"+
+		"\2\2\u008e\u0093\b\6\1\2\u008f\u0092\5\20\t\2\u0090\u0092\5\n\6\2\u0091"+
+		"\u008f\3\2\2\2\u0091\u0090\3\2\2\2\u0092\u0095\3\2\2\2\u0093\u0091\3\2"+
+		"\2\2\u0093\u0094\3\2\2\2\u0094\u0096\3\2\2\2\u0095\u0093\3\2\2\2\u0096"+
+		"\u0097\7$\2\2\u0097\u00ac\b\6\1\2\u0098\u00ad\3\2\2\2\u0099\u009a\7\b"+
+		"\2\2\u009a\u009b\7#\2\2\u009b\u00a0\b\6\1\2\u009c\u009f\5\20\t\2\u009d"+
+		"\u009f\5\n\6\2\u009e\u009c\3\2\2\2\u009e\u009d\3\2\2\2\u009f\u00a2\3\2"+
+		"\2\2\u00a0\u009e\3\2\2\2\u00a0\u00a1\3\2\2\2\u00a1\u00a3\3\2\2\2\u00a2"+
+		"\u00a0\3\2\2\2\u00a3\u00a4\7$\2\2\u00a4\u00ad\b\6\1\2\u00a5\u00a6\7\b"+
+		"\2\2\u00a6\u00a9\b\6\1\2\u00a7\u00aa\5\20\t\2\u00a8\u00aa\5\n\6\2\u00a9"+
+		"\u00a7\3\2\2\2\u00a9\u00a8\3\2\2\2\u00a9\u00aa\3\2\2\2\u00aa\u00ab\3\2"+
+		"\2\2\u00ab\u00ad\b\6\1\2\u00ac\u0098\3\2\2\2\u00ac\u0099\3\2\2\2\u00ac"+
+		"\u00a5\3\2\2\2\u00ad\u00af\3\2\2\2\u00aen\3\2\2\2\u00ae\u0081\3\2\2\2"+
+		"\u00af\13\3\2\2\2\u00b0\u00ba\7\7\2\2\u00b1\u00b2\7%\2\2\u00b2\u00b3\b"+
+		"\7\1\2\u00b3\u00b4\5\22\n\2\u00b4\u00b5\7&\2\2\u00b5\u00b6\b\7\1\2\u00b6"+
+		"\u00bb\3\2\2\2\u00b7\u00b8\5\22\n\2\u00b8\u00b9\7&\2\2\u00b9\u00bb\3\2"+
+		"\2\2\u00ba\u00b1\3\2\2\2\u00ba\u00b7\3\2\2\2\u00bb\u00bc\3\2\2\2\u00bc"+
+		"\u00c0\b\7\1\2\u00bd\u00c1\5\20\t\2\u00be\u00c1\5\f\7\2\u00bf\u00c1\5"+
+		"\24\13\2\u00c0\u00bd\3\2\2\2\u00c0\u00be\3\2\2\2\u00c0\u00bf\3\2\2\2\u00c0"+
+		"\u00c1\3\2\2\2\u00c1\u00c2\3\2\2\2\u00c2\u00c3\b\7\1\2\u00c3\u00f5\3\2"+
+		"\2\2\u00c4\u00ce\7\7\2\2\u00c5\u00c6\7%\2\2\u00c6\u00c7\b\7\1\2\u00c7"+
+		"\u00c8\5\22\n\2\u00c8\u00c9\7&\2\2\u00c9\u00ca\b\7\1\2\u00ca\u00cf\3\2"+
+		"\2\2\u00cb\u00cc\5\22\n\2\u00cc\u00cd\7&\2\2\u00cd\u00cf\3\2\2\2\u00ce"+
+		"\u00c5\3\2\2\2\u00ce\u00cb\3\2\2\2\u00cf\u00d0\3\2\2\2\u00d0\u00d1\7#"+
+		"\2\2\u00d1\u00d7\b\7\1\2\u00d2\u00d6\5\20\t\2\u00d3\u00d6\5\f\7\2\u00d4"+
+		"\u00d6\5\24\13\2\u00d5\u00d2\3\2\2\2\u00d5\u00d3\3\2\2\2\u00d5\u00d4\3"+
+		"\2\2\2\u00d6\u00d9\3\2\2\2\u00d7\u00d5\3\2\2\2\u00d7\u00d8\3\2\2\2\u00d8"+
+		"\u00da\3\2\2\2\u00d9\u00d7\3\2\2\2\u00da\u00db\7$\2\2\u00db\u00f2\b\7"+
+		"\1\2\u00dc\u00f3\3\2\2\2\u00dd\u00de\7\b\2\2\u00de\u00df\7#\2\2\u00df"+
+		"\u00e5\b\7\1\2\u00e0\u00e4\5\20\t\2\u00e1\u00e4\5\f\7\2\u00e2\u00e4\5"+
+		"\24\13\2\u00e3\u00e0\3\2\2\2\u00e3\u00e1\3\2\2\2\u00e3\u00e2\3\2\2\2\u00e4"+
+		"\u00e7\3\2\2\2\u00e5\u00e3\3\2\2\2\u00e5\u00e6\3\2\2\2\u00e6\u00e8\3\2"+
+		"\2\2\u00e7\u00e5\3\2\2\2\u00e8\u00e9\7$\2\2\u00e9\u00f3\b\7\1\2\u00ea"+
+		"\u00eb\7\b\2\2\u00eb\u00ef\b\7\1\2\u00ec\u00f0\5\20\t\2\u00ed\u00f0\5"+
+		"\f\7\2\u00ee\u00f0\5\24\13\2\u00ef\u00ec\3\2\2\2\u00ef\u00ed\3\2\2\2\u00ef"+
+		"\u00ee\3\2\2\2\u00ef\u00f0\3\2\2\2\u00f0\u00f1\3\2\2\2\u00f1\u00f3\b\7"+
+		"\1\2\u00f2\u00dc\3\2\2\2\u00f2\u00dd\3\2\2\2\u00f2\u00ea\3\2\2\2\u00f3"+
+		"\u00f5\3\2\2\2\u00f4\u00b0\3\2\2\2\u00f4\u00c4\3\2\2\2\u00f5\r\3\2\2\2"+
+		"\u00f6\u00f7\7\t\2\2\u00f7\u00f8\7%\2\2\u00f8\u00fd\b\b\1\2\u00f9\u00fa"+
+		"\7\"\2\2\u00fa\u00fe\b\b\1\2\u00fb\u00fc\7\37\2\2\u00fc\u00fe\b\b\1\2"+
+		"\u00fd\u00f9\3\2\2\2\u00fd\u00fb\3\2\2\2\u00fd\u00fe\3\2\2\2\u00fe\u0107"+
+		"\3\2\2\2\u00ff\u0100\7\r\2\2\u0100\u0101\7\37\2\2\u0101\u0106\b\b\1\2"+
+		"\u0102\u0103\7\r\2\2\u0103\u0104\7\"\2\2\u0104\u0106\b\b\1\2\u0105\u00ff"+
+		"\3\2\2\2\u0105\u0102\3\2\2\2\u0106\u0109\3\2\2\2\u0107\u0105\3\2\2\2\u0107"+
+		"\u0108\3\2\2\2\u0108\u010a\3\2\2\2\u0109\u0107\3\2\2\2\u010a\u010b\7&"+
+		"\2\2\u010b\u010c\b\b\1\2\u010c\17\3\2\2\2\u010d\u0112\5\4\3\2\u010e\u0112"+
+		"\5\6\4\2\u010f\u0112\5\16\b\2\u0110\u0112\5\b\5\2\u0111\u010d\3\2\2\2"+
+		"\u0111\u010e\3\2\2\2\u0111\u010f\3\2\2\2\u0111\u0110\3\2\2\2\u0112\21"+
+		"\3\2\2\2\u0113\u0114\7\30\2\2\u0114\u0115\7%\2\2\u0115\u0116\b\n\1\2\u0116"+
+		"\u0117\5\22\n\2\u0117\u0118\7&\2\2\u0118\u0119\b\n\1\2\u0119\u012c\3\2"+
+		"\2\2\u011a\u011d\5\30\r\2\u011b\u011d\5\26\f\2\u011c\u011a\3\2\2\2\u011c"+
+		"\u011b\3\2\2\2\u011d\u0124\3\2\2\2\u011e\u0125\7\17\2\2\u011f\u0125\7"+
+		"\20\2\2\u0120\u0125\7\21\2\2\u0121\u0125\7\22\2\2\u0122\u0125\7\23\2\2"+
+		"\u0123\u0125\7\24\2\2\u0124\u011e\3\2\2\2\u0124\u011f\3\2\2\2\u0124\u0120"+
+		"\3\2\2\2\u0124\u0121\3\2\2\2\u0124\u0122\3\2\2\2\u0124\u0123\3\2\2\2\u0125"+
+		"\u0126\3\2\2\2\u0126\u0129\b\n\1\2\u0127\u012a\5\30\r\2\u0128\u012a\5"+
+		"\26\f\2\u0129\u0127\3\2\2\2\u0129\u0128\3\2\2\2\u012a\u012c\3\2\2\2\u012b"+
+		"\u0113\3\2\2\2\u012b\u011c\3\2\2\2\u012c\23\3\2\2\2\u012d\u012e\7\6\2"+
+		"\2\u012e\u012f\b\13\1\2\u012f\25\3\2\2\2\u0130\u0131\7!\2\2\u0131\u0137"+
+		"\b\f\1\2\u0132\u0133\7 \2\2\u0133\u0137\b\f\1\2\u0134\u0135\7\37\2\2\u0135"+
+		"\u0137\b\f\1\2\u0136\u0130\3\2\2\2\u0136\u0132\3\2\2\2\u0136\u0134\3\2"+
+		"\2\2\u0137\u0152\3\2\2\2\u0138\u013d\7\r\2\2\u0139\u013d\7\16\2\2\u013a"+
+		"\u013d\7\31\2\2\u013b\u013d\7\32\2\2\u013c\u0138\3\2\2\2\u013c\u0139\3"+
+		"\2\2\2\u013c\u013a\3\2\2\2\u013c\u013b\3\2\2\2\u013d\u0142\3\2\2\2\u013e"+
+		"\u0143\7!\2\2\u013f\u0143\7 \2\2\u0140\u0141\7\37\2\2\u0141\u0143\b\f"+
+		"\1\2\u0142\u013e\3\2\2\2\u0142\u013f\3\2\2\2\u0142\u0140\3\2\2\2\u0143"+
+		"\u0144\3\2\2\2\u0144\u014f\b\f\1\2\u0145\u0146\7%\2\2\u0146\u0149\b\f"+
+		"\1\2\u0147\u014a\5\30\r\2\u0148\u014a\5\26\f\2\u0149\u0147\3\2\2\2\u0149"+
+		"\u0148\3\2\2\2\u014a\u014b\3\2\2\2\u014b\u014c\7&\2\2\u014c\u014d\b\f"+
+		"\1\2\u014d\u014f\3\2\2\2\u014e\u013c\3\2\2\2\u014e\u0145\3\2\2\2\u014f"+
+		"\u0151\3\2\2\2\u0150\u014e\3\2\2\2\u0151\u0154\3\2\2\2\u0152\u0150\3\2"+
+		"\2\2\u0152\u0153\3\2\2\2\u0153\27\3\2\2\2\u0154\u0152\3\2\2\2\u0155\u0159"+
+		"\7 \2\2\u0156\u0157\7\37\2\2\u0157\u0159\b\r\1\2\u0158\u0155\3\2\2\2\u0158"+
+		"\u0156\3\2\2\2\u0159\u015a\3\2\2\2\u015a\u017c\b\r\1\2\u015b\u0160\7\r"+
+		"\2\2\u015c\u0160\7\16\2\2\u015d\u0160\7\31\2\2\u015e\u0160\7\32\2\2\u015f"+
+		"\u015b\3\2\2\2\u015f\u015c\3\2\2\2\u015f\u015d\3\2\2\2\u015f\u015e\3\2"+
+		"\2\2\u0160\u0164\3\2\2\2\u0161\u0165\7 \2\2\u0162\u0163\7\37\2\2\u0163"+
+		"\u0165\b\r\1\2\u0164\u0161\3\2\2\2\u0164\u0162\3\2\2\2\u0165\u0166\3\2"+
+		"\2\2\u0166\u0179\b\r\1\2\u0167\u016b\7\27\2\2\u0168\u016b\7\26\2\2\u0169"+
+		"\u016b\7\25\2\2\u016a\u0167\3\2\2\2\u016a\u0168\3\2\2\2\u016a\u0169\3"+
+		"\2\2\2\u016b\u016f\3\2\2\2\u016c\u0170\7 \2\2\u016d\u016e\7\37\2\2\u016e"+
+		"\u0170\b\r\1\2\u016f\u016c\3\2\2\2\u016f\u016d\3\2\2\2\u0170\u0171\3\2"+
+		"\2\2\u0171\u0179\b\r\1\2\u0172\u0173\7%\2\2\u0173\u0174\b\r\1\2\u0174"+
+		"\u0175\5\30\r\2\u0175\u0176\7&\2\2\u0176\u0177\b\r\1\2\u0177\u0179\3\2"+
+		"\2\2\u0178\u015f\3\2\2\2\u0178\u016a\3\2\2\2\u0178\u0172\3\2\2\2\u0179"+
+		"\u017b\3\2\2\2\u017a\u0178\3\2\2\2\u017b\u017e\3\2\2\2\u017c\u017a\3\2"+
+		"\2\2\u017c\u017d\3\2\2\2\u017d\31\3\2\2\2\u017e\u017c\3\2\2\2\66\37!\66"+
+		"=GMW]afhx}\u008b\u0091\u0093\u009e\u00a0\u00a9\u00ac\u00ae\u00ba\u00c0"+
+		"\u00ce\u00d5\u00d7\u00e3\u00e5\u00ef\u00f2\u00f4\u00fd\u0105\u0107\u0111"+
+		"\u011c\u0124\u0129\u012b\u0136\u013c\u0142\u0149\u014e\u0152\u0158\u015f"+
+		"\u0164\u016a\u016f\u0178\u017c";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

@@ -44,6 +44,33 @@ options
 //        sout(suffixCodeGen);
 //
 //    }
+    public void assigned(String id, String type){
+        if (table.containsKey(id)) {
+                throw new KeyAlreadyExistsException("Line: " + getContext().start.getLine() +
+                                                    ": variable " + id + " is already assigned!");
+            }
+            if (reservedNames.contains(id)) {
+                if (table.containsKey(id)) {
+                        throw new KeyAlreadyExistsException("Line: " + getContext().start.getLine() +
+                                                            ": variable _" + id + " is already assigned!");
+                }
+                table.put("_" + id, type);
+            }
+            else {
+                table.put(id, type);
+            }
+    }
+
+    public void exists(String id){
+    if (reservedNames.contains(id) && !table.containsKey("_" + id)) {
+            throw new NoSuchElementException("Line: " + getContext().start.getLine() +
+                                       ": variable _" + id + " wasn't assigned!");
+        }
+        if (!table.containsKey(id)) {
+                    throw new NoSuchElementException("Line: " + getContext().start.getLine() +
+                                               ": variable " + id + " wasn't assigned!");
+        }
+    }
 
     public static void sout(String str){
         System.out.print(str);
@@ -58,10 +85,9 @@ options
 {
 }
 
-//TODO: Проверка на то, что такой ID существует
 //TODO: Выводить код не в консоль, а в файл
-//TODO: Проверка на то, что имя переменной не зарезервировано
-//TODO: Подсчет табов
+//TODO: Подсчет табов?
+//TODO: Скрипты
 
 
 startRule  : (initialization | forCycle | ifStatAverage | varChange | printCom)*;
@@ -69,26 +95,21 @@ initialization :
     //var float: Float = ...
     VAR ID COLON FLOAT ASSIGN
     {
-        if (table.containsKey($ID.text)) {
-            throw new KeyAlreadyExistsException("Line: " + getContext().start.getLine() +
-                                                ": variable " + $ID.text + " is already assigned!");
-        }
+        assigned($ID.text, "float");
         if (reservedNames.contains($ID.text))
-            table.put("_" + $ID.text, "float");
+            sout("\t\tfloat _" + $ID.text + " = ");
         else
-            table.put($ID.text, "float");
-        sout("\t\tfloat " + $ID.text + " = ");
+            sout("\t\tfloat " + $ID.text + " = ");
     }
     floatValue {sout(";\n");}
     |
     VAR ID COLON INTEGER ASSIGN
     {
-        if (table.containsKey($ID.text)) {
-                    throw new KeyAlreadyExistsException("Line: " + getContext().start.getLine() +
-                                                        ": variable " + $ID.text + " is already assigned!");
-        }
-        table.put($ID.text, "int");
-        sout("\t\tint " + $ID.text + " = ");
+        assigned($ID.text, "int");
+        if (reservedNames.contains($ID.text))
+            sout("\t\tint _" + $ID.text + " = ");
+        else
+            sout("\t\tint " + $ID.text + " = ");
     }
     intValue {sout(";\n");};
 
@@ -97,6 +118,7 @@ varChange:
     //cat = ...
     ID ASSIGN
     {
+        exists($ID.text);
         sout("\t\t" + $ID.text + " = ");
     }
     (intValue | floatValue) {sout(";\n");};
@@ -104,16 +126,24 @@ varChange:
 
 forCycle :
     //for _ in 1...n {
-    (FOR i=ID IN (a=INT|a=ID) RANGE (b=INT|b=ID) LCURBR
+    (FOR i=ID IN (a=INT|a=ID {exists($a.text)}) RANGE (b=INT|b=ID {exists($b.text)}) LCURBR
     {
-        sout("\t\tfor (int " + $i.text + " = " + $a.text + "; " + $i.text + " <= " + $b.text + "; " + $i.text + "++) {\n\t\t\t");
+        assigned($i.text, "float");
+
+        if (reservedNames.contains($ID.text))
+            sout("\t\tfor (int _" + $i.text + " = " + $a.text + "; _" + $i.text + " <= " + $b.text + "; _" + $i.text + "++) {\n\t\t\t");
+        else
+            sout("\t\tfor (int " + $i.text + " = " + $a.text + "; " + $i.text + " <= " + $b.text + "; " + $i.text + "++) {\n\t\t\t");
     }
     |
     //for _ in 1..<n {
-    FOR i=ID IN (a=INT|a=ID) RANGEB (b=INT|b=ID) LCURBR
+    FOR i=ID IN (a=INT|a=ID {exists($a.text)}) RANGEB (b=INT|b=ID {exists($b.text)}) LCURBR
     {
-        sout("\t\tfor (int " + $i.text + " = " + $a.text + "; " + $i.text + " < " + $b.text + "; " + $i.text + "++) {\n\t\t\t");
-    })
+        if (reservedNames.contains($ID.text))
+                    sout("\t\tfor (int _" + $i.text + " = " + $a.text + "; _" + $i.text + " < " + $b.text + "; _" + $i.text + "++) {\n\t\t\t");
+                else
+                    sout("\t\tfor (int " + $i.text + " = " + $a.text + "; " + $i.text + " < " + $b.text + "; " + $i.text + "++) {\n\t\t\t");
+        })
     (possibleBlocks | ifStatCycle | breakRule)*
     RCURBR
     {
@@ -160,8 +190,20 @@ ifStatCycle:
 printCom :
     //print('dfdf") | print(cat) | print(cat + cat + "cat") ...
     PRINT LBR {sout("\t\tSystem.out.println(");}
-        (STRING {sout($STRING.text);} | ID {sout($ID.text);})?
-        (PLUS ID {sout(" + " + $ID.text);} | PLUS STRING {sout(" + " + $STRING.text);})*
+        (STRING {sout($STRING.text);}
+        |
+        ID
+        {
+        exists($ID.text);
+        sout($ID.text);
+        })?
+        (PLUS ID
+        {
+        exists($ID.text);
+        sout(" + " + $ID.text);
+        }
+        |
+        PLUS STRING {sout(" + " + $STRING.text);})*
     RBR {sout(");\n");};
 
 
@@ -183,8 +225,12 @@ breakRule :
 
 floatValue :
     // 1.0 + 2 - abc...
-    (FL {sout($FL.text + "f");} | INT {sout($INT.text + "f");} | ID {sout($ID.text);})
-    (((s=PLUS|s=MINUS|s=MULT|s=MOD) (a=FL|a=INT|a=ID) {sout(" " + $s.text + " " + $a.text);}
+    (FL {sout($FL.text + "f");} | INT {sout($INT.text + "f");} | ID
+    {
+    exists($ID.text);
+    sout($ID.text);
+    })
+    (((s=PLUS|s=MINUS|s=MULT|s=MOD) (a=FL|a=INT|a=ID {exists($a.text);}) {sout(" " + $s.text + " " + $a.text);}
     |
     LBR {sout(" (");} (intValue | floatValue) RBR {sout(")");}
     ))*;
@@ -192,10 +238,10 @@ floatValue :
 
 intValue :
     // 1 + abc
-    (a=INT|a=ID) {sout($a.text);}
-    (((s=PLUS|s=MINUS|s=MULT|s=MOD) (a=INT|a=ID) {sout(" " + $s.text + " " + $a.text);}
+    (a=INT|a=ID {exists($a.text);}) {sout($a.text);}
+    (((s=PLUS|s=MINUS|s=MULT|s=MOD) (a=INT|a=ID {exists($a.text);}) {sout(" " + $s.text + " " + $a.text);}
     |
-    (s=OR|s=AND|s=XOR) (a=INT|a=ID) {sout(" " + $s.text + " " + $a.text);}
+    (s=OR|s=AND|s=XOR) (a=INT|a=ID {exists($a.text);}) {sout(" " + $s.text + " " + $a.text);}
     |
     LBR {sout(" (");} intValue RBR {sout(")");}
     ))*;
