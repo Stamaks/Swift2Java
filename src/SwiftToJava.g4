@@ -30,6 +30,7 @@ IN    : 'in';
 BREAK : 'break';
 IF    : 'if';
 ELSE  : 'else';
+PRINT : 'print';
 
 //Operators
 ASSIGN	: '=' ;
@@ -43,28 +44,31 @@ LESSOREQ: '<=';
 XOR     : '^';
 AND     : '&&';
 OR      : '||';
+NOT     : '!';
 MULT    : '*';
 MOD     : '%';
+QUEST   : '?';
+COLON   : ':';
+SCOLON  : ':';
+
 
 //Identifiers
-//Идентификаторы
 ID : [a-zA-Z]+ {};
 
 //Literals
-//Литералы
-
 fragment DIGIT : [0-9] ; // not a token by itself
-// фрагмент - не самостоятельная лексема
 
 INT : DIGIT+ ; // references the DIGIT helper rule
-// ссылается на фрагмент DIGIT
+FLOAT : DIGIT+ '.' DIGIT+;
 
 // String
 // Строка
 fragment QUOTATIONMARK : '"';
 STRING : QUOTATIONMARK ~["]+ QUOTATIONMARK;
 
-LBRACKET : '{';
-RBRACKET : '}';
+LCURBR : '{';
+RCURBR : '}';
+LRBR   : '(';
+RBR    : ')';
 
 WS : [ \t\r\n]+ { Skip(); } ;
