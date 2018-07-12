@@ -28,15 +28,50 @@ options
         sout(prefixCodeGen);
         ParseTree tree = parser.init();
         sout(suffixCodeGen);
+
         // begin parsing at init rule
         // print LISP-style tree
         //System.out.println(tree.toStringTree(parser));
     }
 
     public static void sout(String str){
-        System.out.println(str);
+        System.out.print(str);
     }
 }
+
+@lexer::header
+{
+}
+
+@lexer::members
+{
+}
+
+startRule  : (initialization)*;
+initialization :
+    //var float: Float = ...
+    VAR ID COLON FLOAT ASSIGN
+    {
+        sout("\t\tfloat " + $ID.text + " = ");
+    }
+    rightFloatValue
+    |
+    VAR ID COLON INTEGER ASSIGN
+    {
+        sout("\t\tint " + $ID.text + " = ")
+    }
+    rightIntValue
+    ;
+
+rightFloatValue :
+    //... 1.0 + 2 + abc...
+    //TODO: Проверка на то, что такой ID существует
+    (a=FL|a=INT|a=ID) {sout($a.text)} (PLUS (a=FL|a=INT|a=ID) {sout(" + " + $a.text)})* {sout(";\n")};
+
+rightIntValue :
+    // 1 + abc
+    (a=INT|a=ID) {sout($a.text)} (PLUS (a=INT|a=ID) {sout(" + " + $a.text)})* {sout(";\n")};
+
 //Reserved words
 VAR   : 'var';
 FOR   : 'for';
@@ -45,6 +80,8 @@ BREAK : 'break';
 IF    : 'if';
 ELSE  : 'else';
 PRINT : 'print';
+INTEGER : 'Int';
+FLOAT : 'Float';
 
 //Operators
 ASSIGN	: '=' ;
@@ -63,7 +100,7 @@ MULT    : '*';
 MOD     : '%';
 QUEST   : '?';
 COLON   : ':';
-SCOLON  : ':';
+SCOLON  : ';';
 
 
 //Identifiers
@@ -73,7 +110,7 @@ ID : [a-zA-Z]+ {};
 fragment DIGIT : [0-9] ; // not a token by itself
 
 INT : DIGIT+ ; // references the DIGIT helper rule
-FLOAT : DIGIT+ '.' DIGIT+;
+FL : DIGIT+ '.' DIGIT+;
 
 // String
 // Строка
@@ -85,4 +122,4 @@ RCURBR : '}';
 LRBR   : '(';
 RBR    : ')';
 
-WS : [ \t\r\n]+ { Skip(); } ;
+WS : [ \t\r\n;]+ -> skip ;
