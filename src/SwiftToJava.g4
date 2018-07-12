@@ -96,6 +96,17 @@ forCycle :
     };
 
 
+ifStat :
+    //if (bool) {sth}   |   if bool {sth}
+    IF  (LBR {sout("\t\tif (");} boolForm RBR {sout(")");} | boolForm RBR)  LCURBR {sout(" {\n\t\t\t");}
+        (initialization | varChange | printCom | forCycle | ifStat | )*
+    RCURBR {sout("}\n");}
+    ( | ELSE LCURBR {sout("\t\telse {"\n\t\t\t);}
+        (initialization | varChange | printCom | forCycle | ifStat | )*
+        RCURBR {sout("}\n");}
+    );
+
+
 printCom :
     //print('dfdf") | print(cat) | print(cat + cat + "cat") ...
     PRINT LBR
