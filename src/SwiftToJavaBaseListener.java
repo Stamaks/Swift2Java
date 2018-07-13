@@ -8,6 +8,7 @@
     import java.nio.file.Files;
     import java.nio.file.Paths;
     import java.nio.file.StandardOpenOption;
+    import java.lang.invoke.WrongMethodTypeException;
 
 
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -164,6 +165,18 @@ public class SwiftToJavaBaseListener implements SwiftToJavaListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitIntValue(SwiftToJavaParser.IntValueContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterWrongStatements(SwiftToJavaParser.WrongStatementsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitWrongStatements(SwiftToJavaParser.WrongStatementsContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

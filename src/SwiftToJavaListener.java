@@ -8,6 +8,7 @@
     import java.nio.file.Files;
     import java.nio.file.Paths;
     import java.nio.file.StandardOpenOption;
+    import java.lang.invoke.WrongMethodTypeException;
 
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
@@ -136,4 +137,14 @@ public interface SwiftToJavaListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitIntValue(SwiftToJavaParser.IntValueContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SwiftToJavaParser#wrongStatements}.
+	 * @param ctx the parse tree
+	 */
+	void enterWrongStatements(SwiftToJavaParser.WrongStatementsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SwiftToJavaParser#wrongStatements}.
+	 * @param ctx the parse tree
+	 */
+	void exitWrongStatements(SwiftToJavaParser.WrongStatementsContext ctx);
 }

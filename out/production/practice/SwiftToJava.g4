@@ -15,6 +15,7 @@ options
     import java.nio.file.Files;
     import java.nio.file.Paths;
     import java.nio.file.StandardOpenOption;
+    import java.lang.invoke.WrongMethodTypeException;
 }
 
 @parser::members
@@ -39,20 +40,6 @@ options
                            "switch", "synchronized", "this", "throw", "throws", "transient",
                            "true", "try", "void", "volatile", "while"));
 
-//    public static void main(String args[]){
-//        CharStream input = CharStreams.fromStream(System.in);
-//        // create a lexer that feeds off of input CharStream
-//        SwiftToJavaLexer lexer = new SwiftToJavaLexer(input);
-//        // create a buffer of tokens pulled from the lexer
-//        CommonTokenStream tokens = new CommonTokenStream((TokenSource) lexer);
-//        // create a parser that feeds off the tokens buffer
-//        SwiftToJavaParser parser = new SwiftToJavaParser(tokens);
-//
-//        sout(prefixCodeGen);
-//        ParseTree tree = parser.startRule();
-//        sout(suffixCodeGen);
-//
-//    }
     public void assigned(String id, String type){
         if (table.containsKey(id)) {
                 throw new KeyAlreadyExistsException("Line: " + getContext().start.getLine() +
@@ -121,11 +108,7 @@ options
 {
 }
 
-//TODO: Подсчет табов?
-//TODO: Скрипты
-
-
-startRule  : (initialization | forCycle | ifStatAverage | varChange | printCom)*;
+startRule  : (initialization | forCycle | ifStatAverage | varChange | printCom | wrongStatements)*;
 initialization :
     //var float: Float = ...
     VAR ID COLON FLOAT ASSIGN
@@ -240,13 +223,13 @@ printCom :
     PRINT LBR {sout("\t\tSystem.out.println(");}
         (STRING {sout($STRING.text);}
         |
-        (intValue | floatValue))
+        (floatValue))
 //        ID
 //        {
 //        exists($ID.text);
 //        sout(getID($ID.text));
 //        })?
-        (PLUS (intValue | floatValue)
+        (PLUS (floatValue)
 //        PLUS ID
 //        {
 //        exists($ID.text);
@@ -264,9 +247,9 @@ boolForm :
     // a + d <= b - c
     NOT LBR {sout("!(");} boolForm RBR {sout(")");}
     |
-    (intValue | floatValue)
+    (floatValue)
             (s=EQUAL|s=NEQUAL|s=GREATER|s=GROREQ|s=LESS|s=LESSOREQ){sout(" " + $s.text + " ");}
-                                                                        (intValue | floatValue);
+                                                                        (floatValue);
 
 
 breakRule :
@@ -359,6 +342,13 @@ intValue :
     |
     LBR {sout(" (");} intValue RBR {sout(")");}
     ))*;
+
+wrongStatements:
+    (FLOAT EQUAL | INTEGER EQUAL | FLOAT INTEGER | INTEGER FLOAT | VAR FLOAT | VAR INTEGER)
+    {
+        throw new WrongMethodTypeException("Line: " + getContext().start.getLine() +
+                                                                                              ": illegal expression!");
+    };
 
 
 //Reserved words
