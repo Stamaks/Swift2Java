@@ -9,6 +9,12 @@ options
 {
     import java.util.*;
     import javax.management.openmbean.KeyAlreadyExistsException;
+    import com.sun.corba.se.impl.io.TypeMismatchException;
+    import java.io.File;
+    import java.io.IOException;
+    import java.nio.file.Files;
+    import java.nio.file.Paths;
+    import java.nio.file.StandardOpenOption;
 }
 
 @parser::members
@@ -18,6 +24,9 @@ options
     static String suffixCodeGen = "\t}\n}";
 
     static Map<String, String> table = new HashMap<>();
+
+    public boolean isVarChange = false;
+    public String varChangeType = "";
 
     static ArrayList<String> reservedNames = new ArrayList<String>(
                            Arrays.asList("abstract", "assert", "boolean", "break", "byte", "case",
@@ -77,8 +86,30 @@ options
             return id;
     }
 
+    public void typeMismatch(String id, String wrongType){
+        if (table.get(id).equals(wrongType)) {
+            throw new TypeMismatchException("Line: " + getContext().start.getLine() +
+                                                          ": variable " + id + " has wrong type!");
+        }
+    }
+
     public static void sout(String str){
         System.out.print(str);
+
+        String path = "translatedCode.java";
+        File f = new File(path);
+        if(!f.exists() && !f.isDirectory()) {
+            try{
+                f.createNewFile();
+            } catch (IOException e) {
+                System.err.println(e);
+            }
+        }
+        try {
+            Files.write(Paths.get(path), str.getBytes(), StandardOpenOption.APPEND);
+        } catch (IOException e) {
+            System.err.println(e);
+        }
     }
 }
 
@@ -90,7 +121,6 @@ options
 {
 }
 
-//TODO: Выводить код не в консоль, а в файл
 //TODO: Подсчет табов?
 //TODO: Скрипты
 
@@ -101,20 +131,16 @@ initialization :
     VAR ID COLON FLOAT ASSIGN
     {
         assigned($ID.text, "float");
-        if (reservedNames.contains($ID.text))
-            sout("\t\tfloat _" + $ID.text + " = ");
-        else
-            sout("\t\tfloat " + $ID.text + " = ");
+        sout("\t\tfloat " + getID($ID.text) + " = ");
+
     }
     floatValue {sout(";\n");}
     |
     VAR ID COLON INTEGER ASSIGN
     {
         assigned($ID.text, "int");
-        if (reservedNames.contains($ID.text))
-            sout("\t\tint _" + $ID.text + " = ");
-        else
-            sout("\t\tint " + $ID.text + " = ");
+        sout("\t\tint " + getID($ID.text) + " = ");
+
     }
     intValue {sout(";\n");};
 
@@ -124,10 +150,9 @@ varChange:
     ID ASSIGN
     {
         exists($ID.text);
-        if (reservedNames.contains($ID.text))
-            sout("\t\t_" + $ID.text + " = ");
-        else
-            sout("\t\t" + $ID.text + " = ");
+        sout("\t\t" + getID($ID.text) + " = ");
+        isVarChange = true;
+        varChangeType = table.get(getID($ID.text));
     }
     (intValue | floatValue) {sout(";\n");};
 
@@ -183,10 +208,10 @@ ifStatAverage :
     //if (bool) {sth}   |   if bool {sth}
     IF  (LBR {sout("\t\tif (");} boolForm RBR {sout(")");} | boolForm RBR)  LCURBR {sout(" {\n\t\t\t");}
         (possibleBlocks | ifStatAverage)*
-    RCURBR {sout("}\n");}
+    RCURBR {sout("\t\t}\n");}
     ( | ELSE LCURBR {sout("\t\telse {\n\t\t\t");}
         (possibleBlocks | ifStatAverage)*
-        RCURBR {sout("}\n");}
+        RCURBR {sout("\t\t}\n");}
       | ELSE {sout("\t\telse \n\t\t\t");}
         (possibleBlocks | ifStatAverage)? {sout("\n");}
     );
@@ -215,16 +240,18 @@ printCom :
     PRINT LBR {sout("\t\tSystem.out.println(");}
         (STRING {sout($STRING.text);}
         |
-        ID
-        {
-        exists($ID.text);
-        sout(getID($ID.text));
-        })?
-        (PLUS ID
-        {
-        exists($ID.text);
-        sout(" + " + getID($ID.text));
-        }
+        (intValue | floatValue))
+//        ID
+//        {
+//        exists($ID.text);
+//        sout(getID($ID.text));
+//        })?
+        (PLUS (intValue | floatValue)
+//        PLUS ID
+//        {
+//        exists($ID.text);
+//        sout(" + " + getID($ID.text));
+//        }
         |
         PLUS STRING {sout(" + " + $STRING.text);})*
     RBR {sout(");\n");};
@@ -250,6 +277,13 @@ floatValue :
     // 1.0 + 2 - abc...
     (FL {sout($FL.text + "f");} | INT {sout($INT.text + "f");} | ID
     {
+    if (isVarChange) {
+        if (varChangeType.equals("int")) {
+            throw new TypeMismatchException("Line: " + getContext().start.getLine() +
+                                                        ": cannot assign float to int!");
+        }
+        isVarChange = false;
+    }
     exists($ID.text);
     sout(getID($ID.text));
     })
@@ -272,23 +306,54 @@ intValue :
     (a=INT|a=ID {exists($a.text);})
     {
         String a_id = $a.text;
-        if (!a_id.matches("[.0-9]+"))
+        if (!a_id.matches("[.0-9]+")) {
             a_id = getID(a_id);
+            if (isVarChange) {
+                if (!varChangeType.equals("float")) {
+                    typeMismatch(a_id, "float");
+                }
+            }
+            else {
+                typeMismatch(a_id, "float");
+            }
+        }
+        if (a_id.contains(".")) {
+            throw new TypeMismatchException("Line: " + getContext().start.getLine() +
+                                                                      ": number " + a_id + " has wrong type!");
+        }
         sout(a_id);
     }
     (((s=PLUS|s=MINUS|s=MULT|s=MOD) (b=INT|b=ID {exists($b.text);})
     {
         String b_id = $b.text;
-        if (!b_id.matches("[.0-9]+"))
+        if (!b_id.matches("[.0-9]+")) {
             b_id = getID(b_id);
+            if (isVarChange) {
+                if (!varChangeType.equals("float")) {
+                    typeMismatch(b_id, "float");
+                }
+            }
+            else {
+                typeMismatch(b_id, "float");
+            }
+        }
         sout(" " + $s.text + " " + b_id);
     }
     |
     (s=OR|s=AND|s=XOR) (b=INT|b=ID {exists($b.text);})
     {
         String b_id = $b.text;
-        if (!b_id.matches("[.0-9]+"))
-            b_id = getID(b_id);
+        if (!b_id.matches("[.0-9]+")){
+             b_id = getID(b_id);
+             if (isVarChange) {
+                 if (!varChangeType.equals("float")) {
+                     typeMismatch(b_id, "int");
+                 }
+             }
+             else {
+                 typeMismatch(b_id, "float");
+             }
+        }
         sout(" " + $s.text + " " + b_id);
     }
     |
