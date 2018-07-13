@@ -62,14 +62,19 @@ options
     }
 
     public void exists(String id){
-    if (reservedNames.contains(id) && !table.containsKey("_" + id)) {
-            throw new NoSuchElementException("Line: " + getContext().start.getLine() +
-                                       ": variable _" + id + " wasn't assigned!");
-        }
         if (!table.containsKey(id)) {
-                    throw new NoSuchElementException("Line: " + getContext().start.getLine() +
-                                               ": variable " + id + " wasn't assigned!");
+            if (reservedNames.contains(id) && !table.containsKey("_" + id)) {
+                throw new NoSuchElementException("Line: " + getContext().start.getLine() +
+                                           ": variable _" + id + " wasn't assigned!");
+            }
         }
+    }
+
+    public String getID(String id){
+        if (reservedNames.contains(id))
+            return "_" + id;
+        else
+            return id;
     }
 
     public static void sout(String str){
@@ -119,35 +124,53 @@ varChange:
     ID ASSIGN
     {
         exists($ID.text);
-        sout("\t\t" + $ID.text + " = ");
+        if (reservedNames.contains($ID.text))
+            sout("\t\t_" + $ID.text + " = ");
+        else
+            sout("\t\t" + $ID.text + " = ");
     }
     (intValue | floatValue) {sout(";\n");};
 
 
 forCycle :
     //for _ in 1...n {
-    (FOR i=ID IN (a=INT|a=ID {exists($a.text)}) RANGE (b=INT|b=ID {exists($b.text)}) LCURBR
+    (FOR i=ID IN (a=INT|a=ID {exists($a.text);}) RANGE (b=INT|b=ID {exists($b.text);}) LCURBR
     {
-        assigned($i.text, "float");
+        String a_id = $a.text;
+        if (!a_id.matches("[.0-9]+"))
+            a_id = getID(a_id);
 
-        if (reservedNames.contains($ID.text))
-            sout("\t\tfor (int _" + $i.text + " = " + $a.text + "; _" + $i.text + " <= " + $b.text + "; _" + $i.text + "++) {\n\t\t\t");
-        else
-            sout("\t\tfor (int " + $i.text + " = " + $a.text + "; " + $i.text + " <= " + $b.text + "; " + $i.text + "++) {\n\t\t\t");
+        String b_id = $b.text;
+        if (!b_id.matches("[.0-9]+"))
+            b_id = getID(b_id);
+
+        assigned($i.text, "float");
+        String i_id = getID($i.text);
+
+        sout("\t\tfor (int " + i_id + " = " + a_id + "; " + i_id + " <= " + b_id + "; " + i_id + "++) {\n\t\t\t");
     }
     |
     //for _ in 1..<n {
-    FOR i=ID IN (a=INT|a=ID {exists($a.text)}) RANGEB (b=INT|b=ID {exists($b.text)}) LCURBR
+    FOR i=ID IN (a=INT|a=ID {exists($a.text);}) RANGEB (b=INT|b=ID {exists($b.text);}) LCURBR
     {
-        if (reservedNames.contains($ID.text))
-                    sout("\t\tfor (int _" + $i.text + " = " + $a.text + "; _" + $i.text + " < " + $b.text + "; _" + $i.text + "++) {\n\t\t\t");
-                else
-                    sout("\t\tfor (int " + $i.text + " = " + $a.text + "; " + $i.text + " < " + $b.text + "; " + $i.text + "++) {\n\t\t\t");
-        })
+        String a_id = $a.text;
+        if (!a_id.matches("[.0-9]+"))
+            a_id = getID(a_id);
+
+        String b_id = $b.text;
+        if (!b_id.matches("[.0-9]+"))
+            b_id = getID(b_id);
+
+        assigned($i.text, "float");
+        String i_id = getID($i.text);
+
+        sout("\t\tfor (int " + i_id + " = " + a_id + "; " + i_id + " <= " + b_id + "; " + i_id + "++) {\n\t\t\t");
+    }
+    )
     (possibleBlocks | ifStatCycle | breakRule)*
     RCURBR
     {
-        sout("\t\t}");
+        sout("\t\t}\n");
     };
 
 
@@ -195,12 +218,12 @@ printCom :
         ID
         {
         exists($ID.text);
-        sout($ID.text);
+        sout(getID($ID.text));
         })?
         (PLUS ID
         {
         exists($ID.text);
-        sout(" + " + $ID.text);
+        sout(" + " + getID($ID.text));
         }
         |
         PLUS STRING {sout(" + " + $STRING.text);})*
@@ -228,9 +251,17 @@ floatValue :
     (FL {sout($FL.text + "f");} | INT {sout($INT.text + "f");} | ID
     {
     exists($ID.text);
-    sout($ID.text);
+    sout(getID($ID.text));
     })
-    (((s=PLUS|s=MINUS|s=MULT|s=MOD) (a=FL|a=INT|a=ID {exists($a.text);}) {sout(" " + $s.text + " " + $a.text);}
+    (((s=PLUS|s=MINUS|s=MULT|s=MOD) (a=FL|a=INT|a=ID {exists($a.text);})
+    {
+        String a_id = $a.text;
+        if (!a_id.matches("[.0-9]+"))
+            a_id = getID(a_id);
+        else
+            a_id += "f";
+        sout(" " + $s.text + " " + a_id);
+    }
     |
     LBR {sout(" (");} (intValue | floatValue) RBR {sout(")");}
     ))*;
@@ -238,10 +269,28 @@ floatValue :
 
 intValue :
     // 1 + abc
-    (a=INT|a=ID {exists($a.text);}) {sout($a.text);}
-    (((s=PLUS|s=MINUS|s=MULT|s=MOD) (a=INT|a=ID {exists($a.text);}) {sout(" " + $s.text + " " + $a.text);}
+    (a=INT|a=ID {exists($a.text);})
+    {
+        String a_id = $a.text;
+        if (!a_id.matches("[.0-9]+"))
+            a_id = getID(a_id);
+        sout(a_id);
+    }
+    (((s=PLUS|s=MINUS|s=MULT|s=MOD) (b=INT|b=ID {exists($b.text);})
+    {
+        String b_id = $b.text;
+        if (!b_id.matches("[.0-9]+"))
+            b_id = getID(b_id);
+        sout(" " + $s.text + " " + b_id);
+    }
     |
-    (s=OR|s=AND|s=XOR) (a=INT|a=ID {exists($a.text);}) {sout(" " + $s.text + " " + $a.text);}
+    (s=OR|s=AND|s=XOR) (b=INT|b=ID {exists($b.text);})
+    {
+        String b_id = $b.text;
+        if (!b_id.matches("[.0-9]+"))
+            b_id = getID(b_id);
+        sout(" " + $s.text + " " + b_id);
+    }
     |
     LBR {sout(" (");} intValue RBR {sout(")");}
     ))*;

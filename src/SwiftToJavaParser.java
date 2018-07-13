@@ -143,14 +143,19 @@ public class SwiftToJavaParser extends Parser {
 	    }
 
 	    public void exists(String id){
-	    if (reservedNames.contains(id) && !table.containsKey("_" + id)) {
-	            throw new NoSuchElementException("Line: " + getContext().start.getLine() +
-	                                       ": variable _" + id + " wasn't assigned!");
-	        }
 	        if (!table.containsKey(id)) {
-	                    throw new NoSuchElementException("Line: " + getContext().start.getLine() +
-	                                               ": variable " + id + " wasn't assigned!");
+	            if (reservedNames.contains(id) && !table.containsKey("_" + id)) {
+	                throw new NoSuchElementException("Line: " + getContext().start.getLine() +
+	                                           ": variable _" + id + " wasn't assigned!");
+	            }
 	        }
+	    }
+
+	    public String getID(String id){
+	        if (reservedNames.contains(id))
+	            return "_" + id;
+	        else
+	            return id;
 	    }
 
 	    public static void sout(String str){
@@ -406,7 +411,10 @@ public class SwiftToJavaParser extends Parser {
 			match(ASSIGN);
 
 			        exists((((VarChangeContext)_localctx).ID!=null?((VarChangeContext)_localctx).ID.getText():null));
-			        sout("\t\t" + (((VarChangeContext)_localctx).ID!=null?((VarChangeContext)_localctx).ID.getText():null) + " = ");
+			        if (reservedNames.contains((((VarChangeContext)_localctx).ID!=null?((VarChangeContext)_localctx).ID.getText():null)))
+			            sout("\t\t_" + (((VarChangeContext)_localctx).ID!=null?((VarChangeContext)_localctx).ID.getText():null) + " = ");
+			        else
+			            sout("\t\t" + (((VarChangeContext)_localctx).ID!=null?((VarChangeContext)_localctx).ID.getText():null) + " = ");
 			    
 			setState(59);
 			_errHandler.sync(this);
@@ -519,7 +527,7 @@ public class SwiftToJavaParser extends Parser {
 					{
 					setState(67);
 					((ForCycleContext)_localctx).a = match(ID);
-					exists((((ForCycleContext)_localctx).a!=null?((ForCycleContext)_localctx).a.getText():null))
+					exists((((ForCycleContext)_localctx).a!=null?((ForCycleContext)_localctx).a.getText():null));
 					}
 					break;
 				default:
@@ -540,7 +548,7 @@ public class SwiftToJavaParser extends Parser {
 					{
 					setState(73);
 					((ForCycleContext)_localctx).b = match(ID);
-					exists((((ForCycleContext)_localctx).b!=null?((ForCycleContext)_localctx).b.getText():null))
+					exists((((ForCycleContext)_localctx).b!=null?((ForCycleContext)_localctx).b.getText():null));
 					}
 					break;
 				default:
@@ -549,12 +557,18 @@ public class SwiftToJavaParser extends Parser {
 				setState(77);
 				match(LCURBR);
 
-				        assigned((((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null), "float");
+				        String a_id = (((ForCycleContext)_localctx).a!=null?((ForCycleContext)_localctx).a.getText():null);
+				        if (!a_id.matches("[.0-9]+"))
+				            a_id = getID(a_id);
 
-				        if (reservedNames.contains((((ForCycleContext)_localctx).ID!=null?((ForCycleContext)_localctx).ID.getText():null)))
-				            sout("\t\tfor (int _" + (((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null) + " = " + (((ForCycleContext)_localctx).a!=null?((ForCycleContext)_localctx).a.getText():null) + "; _" + (((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null) + " <= " + (((ForCycleContext)_localctx).b!=null?((ForCycleContext)_localctx).b.getText():null) + "; _" + (((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null) + "++) {\n\t\t\t");
-				        else
-				            sout("\t\tfor (int " + (((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null) + " = " + (((ForCycleContext)_localctx).a!=null?((ForCycleContext)_localctx).a.getText():null) + "; " + (((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null) + " <= " + (((ForCycleContext)_localctx).b!=null?((ForCycleContext)_localctx).b.getText():null) + "; " + (((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null) + "++) {\n\t\t\t");
+				        String b_id = (((ForCycleContext)_localctx).b!=null?((ForCycleContext)_localctx).b.getText():null);
+				        if (!b_id.matches("[.0-9]+"))
+				            b_id = getID(b_id);
+
+				        assigned((((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null), "float");
+				        String i_id = getID((((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null));
+
+				        sout("\t\tfor (int " + i_id + " = " + a_id + "; " + i_id + " <= " + b_id + "; " + i_id + "++) {\n\t\t\t");
 				    
 				}
 				break;
@@ -579,7 +593,7 @@ public class SwiftToJavaParser extends Parser {
 					{
 					setState(83);
 					((ForCycleContext)_localctx).a = match(ID);
-					exists((((ForCycleContext)_localctx).a!=null?((ForCycleContext)_localctx).a.getText():null))
+					exists((((ForCycleContext)_localctx).a!=null?((ForCycleContext)_localctx).a.getText():null));
 					}
 					break;
 				default:
@@ -600,7 +614,7 @@ public class SwiftToJavaParser extends Parser {
 					{
 					setState(89);
 					((ForCycleContext)_localctx).b = match(ID);
-					exists((((ForCycleContext)_localctx).b!=null?((ForCycleContext)_localctx).b.getText():null))
+					exists((((ForCycleContext)_localctx).b!=null?((ForCycleContext)_localctx).b.getText():null));
 					}
 					break;
 				default:
@@ -609,11 +623,19 @@ public class SwiftToJavaParser extends Parser {
 				setState(93);
 				match(LCURBR);
 
-				        if (reservedNames.contains((((ForCycleContext)_localctx).ID!=null?((ForCycleContext)_localctx).ID.getText():null)))
-				                    sout("\t\tfor (int _" + (((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null) + " = " + (((ForCycleContext)_localctx).a!=null?((ForCycleContext)_localctx).a.getText():null) + "; _" + (((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null) + " < " + (((ForCycleContext)_localctx).b!=null?((ForCycleContext)_localctx).b.getText():null) + "; _" + (((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null) + "++) {\n\t\t\t");
-				                else
-				                    sout("\t\tfor (int " + (((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null) + " = " + (((ForCycleContext)_localctx).a!=null?((ForCycleContext)_localctx).a.getText():null) + "; " + (((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null) + " < " + (((ForCycleContext)_localctx).b!=null?((ForCycleContext)_localctx).b.getText():null) + "; " + (((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null) + "++) {\n\t\t\t");
-				        
+				        String a_id = (((ForCycleContext)_localctx).a!=null?((ForCycleContext)_localctx).a.getText():null);
+				        if (!a_id.matches("[.0-9]+"))
+				            a_id = getID(a_id);
+
+				        String b_id = (((ForCycleContext)_localctx).b!=null?((ForCycleContext)_localctx).b.getText():null);
+				        if (!b_id.matches("[.0-9]+"))
+				            b_id = getID(b_id);
+
+				        assigned((((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null), "float");
+				        String i_id = getID((((ForCycleContext)_localctx).i!=null?((ForCycleContext)_localctx).i.getText():null));
+
+				        sout("\t\tfor (int " + i_id + " = " + a_id + "; " + i_id + " <= " + b_id + "; " + i_id + "++) {\n\t\t\t");
+				    
 				}
 				break;
 			}
@@ -657,7 +679,7 @@ public class SwiftToJavaParser extends Parser {
 			setState(105);
 			match(RCURBR);
 
-			        sout("\t\t}");
+			        sout("\t\t}\n");
 			    
 			}
 		}
@@ -1296,7 +1318,7 @@ public class SwiftToJavaParser extends Parser {
 				((PrintComContext)_localctx).ID = match(ID);
 
 				        exists((((PrintComContext)_localctx).ID!=null?((PrintComContext)_localctx).ID.getText():null));
-				        sout((((PrintComContext)_localctx).ID!=null?((PrintComContext)_localctx).ID.getText():null));
+				        sout(getID((((PrintComContext)_localctx).ID!=null?((PrintComContext)_localctx).ID.getText():null)));
 				        
 				}
 				break;
@@ -1322,7 +1344,7 @@ public class SwiftToJavaParser extends Parser {
 					((PrintComContext)_localctx).ID = match(ID);
 
 					        exists((((PrintComContext)_localctx).ID!=null?((PrintComContext)_localctx).ID.getText():null));
-					        sout(" + " + (((PrintComContext)_localctx).ID!=null?((PrintComContext)_localctx).ID.getText():null));
+					        sout(" + " + getID((((PrintComContext)_localctx).ID!=null?((PrintComContext)_localctx).ID.getText():null)));
 					        
 					}
 					break;
@@ -1728,7 +1750,7 @@ public class SwiftToJavaParser extends Parser {
 				((FloatValueContext)_localctx).ID = match(ID);
 
 				    exists((((FloatValueContext)_localctx).ID!=null?((FloatValueContext)_localctx).ID.getText():null));
-				    sout((((FloatValueContext)_localctx).ID!=null?((FloatValueContext)_localctx).ID.getText():null));
+				    sout(getID((((FloatValueContext)_localctx).ID!=null?((FloatValueContext)_localctx).ID.getText():null)));
 				    
 				}
 				break;
@@ -1804,7 +1826,14 @@ public class SwiftToJavaParser extends Parser {
 					default:
 						throw new NoViableAltException(this);
 					}
-					sout(" " + (((FloatValueContext)_localctx).s!=null?((FloatValueContext)_localctx).s.getText():null) + " " + (((FloatValueContext)_localctx).a!=null?((FloatValueContext)_localctx).a.getText():null));
+
+					        String a_id = (((FloatValueContext)_localctx).a!=null?((FloatValueContext)_localctx).a.getText():null);
+					        if (!a_id.matches("[.0-9]+"))
+					            a_id = getID(a_id);
+					        else
+					            a_id += "f";
+					        sout(" " + (((FloatValueContext)_localctx).s!=null?((FloatValueContext)_localctx).s.getText():null) + " " + a_id);
+					    
 					}
 					break;
 				case LBR:
@@ -1858,6 +1887,7 @@ public class SwiftToJavaParser extends Parser {
 	public static class IntValueContext extends ParserRuleContext {
 		public Token a;
 		public Token s;
+		public Token b;
 		public List<TerminalNode> INT() { return getTokens(SwiftToJavaParser.INT); }
 		public TerminalNode INT(int i) {
 			return getToken(SwiftToJavaParser.INT, i);
@@ -1948,7 +1978,12 @@ public class SwiftToJavaParser extends Parser {
 			default:
 				throw new NoViableAltException(this);
 			}
-			sout((((IntValueContext)_localctx).a!=null?((IntValueContext)_localctx).a.getText():null));
+
+			        String a_id = (((IntValueContext)_localctx).a!=null?((IntValueContext)_localctx).a.getText():null);
+			        if (!a_id.matches("[.0-9]+"))
+			            a_id = getID(a_id);
+			        sout(a_id);
+			    
 			setState(378);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
@@ -1999,20 +2034,25 @@ public class SwiftToJavaParser extends Parser {
 					case INT:
 						{
 						setState(351);
-						((IntValueContext)_localctx).a = match(INT);
+						((IntValueContext)_localctx).b = match(INT);
 						}
 						break;
 					case ID:
 						{
 						setState(352);
-						((IntValueContext)_localctx).a = match(ID);
-						exists((((IntValueContext)_localctx).a!=null?((IntValueContext)_localctx).a.getText():null));
+						((IntValueContext)_localctx).b = match(ID);
+						exists((((IntValueContext)_localctx).b!=null?((IntValueContext)_localctx).b.getText():null));
 						}
 						break;
 					default:
 						throw new NoViableAltException(this);
 					}
-					sout(" " + (((IntValueContext)_localctx).s!=null?((IntValueContext)_localctx).s.getText():null) + " " + (((IntValueContext)_localctx).a!=null?((IntValueContext)_localctx).a.getText():null));
+
+					        String b_id = (((IntValueContext)_localctx).b!=null?((IntValueContext)_localctx).b.getText():null);
+					        if (!b_id.matches("[.0-9]+"))
+					            b_id = getID(b_id);
+					        sout(" " + (((IntValueContext)_localctx).s!=null?((IntValueContext)_localctx).s.getText():null) + " " + b_id);
+					    
 					}
 					break;
 				case XOR:
@@ -2049,20 +2089,25 @@ public class SwiftToJavaParser extends Parser {
 					case INT:
 						{
 						setState(362);
-						((IntValueContext)_localctx).a = match(INT);
+						((IntValueContext)_localctx).b = match(INT);
 						}
 						break;
 					case ID:
 						{
 						setState(363);
-						((IntValueContext)_localctx).a = match(ID);
-						exists((((IntValueContext)_localctx).a!=null?((IntValueContext)_localctx).a.getText():null));
+						((IntValueContext)_localctx).b = match(ID);
+						exists((((IntValueContext)_localctx).b!=null?((IntValueContext)_localctx).b.getText():null));
 						}
 						break;
 					default:
 						throw new NoViableAltException(this);
 					}
-					sout(" " + (((IntValueContext)_localctx).s!=null?((IntValueContext)_localctx).s.getText():null) + " " + (((IntValueContext)_localctx).a!=null?((IntValueContext)_localctx).a.getText():null));
+
+					        String b_id = (((IntValueContext)_localctx).b!=null?((IntValueContext)_localctx).b.getText():null);
+					        if (!b_id.matches("[.0-9]+"))
+					            b_id = getID(b_id);
+					        sout(" " + (((IntValueContext)_localctx).s!=null?((IntValueContext)_localctx).s.getText():null) + " " + b_id);
+					    
 					}
 					break;
 				case LBR:

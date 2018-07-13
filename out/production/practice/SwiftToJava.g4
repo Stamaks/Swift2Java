@@ -44,17 +44,37 @@ options
 //        sout(suffixCodeGen);
 //
 //    }
-    public static void assigned(){}
+    public void assigned(String id, String type){
+        if (table.containsKey(id)) {
+                throw new KeyAlreadyExistsException("Line: " + getContext().start.getLine() +
+                                                    ": variable " + id + " is already assigned!");
+            }
+            if (reservedNames.contains(id)) {
+                if (table.containsKey(id)) {
+                        throw new KeyAlreadyExistsException("Line: " + getContext().start.getLine() +
+                                                            ": variable _" + id + " is already assigned!");
+                }
+                table.put("_" + id, type);
+            }
+            else {
+                table.put(id, type);
+            }
+    }
 
     public void exists(String id){
-    if (reservedNames.contains(id) && !table.containsKey("_" + id)) {
-            throw new NoSuchElementException("Line: " + getContext().start.getLine() +
-                                       ": variable _" + id + " wasn't assigned!");
-        }
         if (!table.containsKey(id)) {
-                    throw new NoSuchElementException("Line: " + getContext().start.getLine() +
-                                               ": variable " + id + " wasn't assigned!");
+            if (reservedNames.contains(id) && !table.containsKey("_" + id)) {
+                throw new NoSuchElementException("Line: " + getContext().start.getLine() +
+                                           ": variable _" + id + " wasn't assigned!");
+            }
         }
+    }
+
+    public String getID(String id){
+        if (reservedNames.contains(id))
+            return "_" + id;
+        else
+            return id;
     }
 
     public static void sout(String str){
@@ -70,10 +90,8 @@ options
 {
 }
 
-//TODO: Проверка на то, что такой ID существует
 //TODO: Выводить код не в консоль, а в файл
-//TODO: Проверка на то, что имя переменной не зарезервировано
-//TODO: Подсчет табов
+//TODO: Подсчет табов?
 //TODO: Скрипты
 
 
@@ -82,43 +100,21 @@ initialization :
     //var float: Float = ...
     VAR ID COLON FLOAT ASSIGN
     {
-        if (table.containsKey($ID.text)) {
-            throw new KeyAlreadyExistsException("Line: " + getContext().start.getLine() +
-                                                ": variable " + $ID.text + " is already assigned!");
-        }
-        if (reservedNames.contains($ID.text)) {
-            if (table.containsKey($ID.text)) {
-                    throw new KeyAlreadyExistsException("Line: " + getContext().start.getLine() +
-                                                        ": variable _" + $ID.text + " is already assigned!");
-            }
-            table.put("_" + $ID.text, "float");
+        assigned($ID.text, "float");
+        if (reservedNames.contains($ID.text))
             sout("\t\tfloat _" + $ID.text + " = ");
-        }
-        else {
-            table.put($ID.text, "float");
+        else
             sout("\t\tfloat " + $ID.text + " = ");
-        }
     }
     floatValue {sout(";\n");}
     |
     VAR ID COLON INTEGER ASSIGN
     {
-        if (table.containsKey($ID.text)) {
-                    throw new KeyAlreadyExistsException("Line: " + getContext().start.getLine() +
-                                                        ": variable " + $ID.text + " is already assigned!");
-        }
-        if (reservedNames.contains($ID.text)) {
-            if (table.containsKey($ID.text)) {
-                    throw new KeyAlreadyExistsException("Line: " + getContext().start.getLine() +
-                                                        ": variable _" + $ID.text + " is already assigned!");
-            }
-            table.put("_" + $ID.text, "int");
+        assigned($ID.text, "int");
+        if (reservedNames.contains($ID.text))
             sout("\t\tint _" + $ID.text + " = ");
-        }
-        else {
-            table.put($ID.text, "int");
+        else
             sout("\t\tint " + $ID.text + " = ");
-        }
     }
     intValue {sout(";\n");};
 
@@ -128,59 +124,53 @@ varChange:
     ID ASSIGN
     {
         exists($ID.text);
-        sout("\t\t" + $ID.text + " = ");
+        if (reservedNames.contains($ID.text))
+            sout("\t\t_" + $ID.text + " = ");
+        else
+            sout("\t\t" + $ID.text + " = ");
     }
     (intValue | floatValue) {sout(";\n");};
 
 
 forCycle :
     //for _ in 1...n {
-    (FOR i=ID IN (a=INT|a=ID) RANGE (b=INT|b=ID) LCURBR
+    (FOR i=ID IN (a=INT|a=ID {exists($a.text);}) RANGE (b=INT|b=ID {exists($b.text);}) LCURBR
     {
-        if (table.containsKey($i.text)) {
-                            throw new KeyAlreadyExistsException("Line: " + getContext().start.getLine() +
-                                                                ": variable " + $i.text + " is already assigned!");
-        }
-        if (reservedNames.contains($i.text)) {
-            if (table.containsKey($i.text)) {
-                    throw new KeyAlreadyExistsException("Line: " + getContext().start.getLine() +
-                                                        ": variable _" + $i.text + " is already assigned!");
-            }
-            table.put("_" + $i.text, "int");
-            sout("\t\tint _" + $i.text + " = ");
-        }
-        else {
-            table.put($i.text, "int");
-            sout("\t\tint " + $i.text + " = ");
-        }
-        sout("\t\tfor (int " + $i.text + " = " + $a.text + "; " + $i.text + " <= " + $b.text + "; " + $i.text + "++) {\n\t\t\t");
+        String a_id = $a.text;
+        if (!a_id.matches("[.0-9]+"))
+            a_id = getID(a_id);
+
+        String b_id = $b.text;
+        if (!b_id.matches("[.0-9]+"))
+            b_id = getID(b_id);
+
+        assigned($i.text, "float");
+        String i_id = getID($i.text);
+
+        sout("\t\tfor (int " + i_id + " = " + a_id + "; " + i_id + " <= " + b_id + "; " + i_id + "++) {\n\t\t\t");
     }
     |
     //for _ in 1..<n {
-    FOR i=ID IN (a=INT|a=ID) RANGEB (b=INT|b=ID) LCURBR
+    FOR i=ID IN (a=INT|a=ID {exists($a.text);}) RANGEB (b=INT|b=ID {exists($b.text);}) LCURBR
     {
-        if (table.containsKey($i.text)) {
-                                    throw new KeyAlreadyExistsException("Line: " + getContext().start.getLine() +
-                                                                        ": variable " + $i.text + " is already assigned!");
-        }
-        if (reservedNames.contains($i.text)) {
-            if (table.containsKey($i.text)) {
-                    throw new KeyAlreadyExistsException("Line: " + getContext().start.getLine() +
-                                                        ": variable _" + $i.text + " is already assigned!");
-            }
-            table.put("_" + $i.text, "int");
-            sout("\t\tint _" + $i.text + " = ");
-        }
-        else {
-            table.put($i.text, "int");
-            sout("\t\tint " + $i.text + " = ");
-        }
-        sout("\t\tfor (int " + $i.text + " = " + $a.text + "; " + $i.text + " < " + $b.text + "; " + $i.text + "++) {\n\t\t\t");
-    })
+        String a_id = $a.text;
+        if (!a_id.matches("[.0-9]+"))
+            a_id = getID(a_id);
+
+        String b_id = $b.text;
+        if (!b_id.matches("[.0-9]+"))
+            b_id = getID(b_id);
+
+        assigned($i.text, "float");
+        String i_id = getID($i.text);
+
+        sout("\t\tfor (int " + i_id + " = " + a_id + "; " + i_id + " <= " + b_id + "; " + i_id + "++) {\n\t\t\t");
+    }
+    )
     (possibleBlocks | ifStatCycle | breakRule)*
     RCURBR
     {
-        sout("\t\t}");
+        sout("\t\t}\n");
     };
 
 
@@ -227,27 +217,13 @@ printCom :
         |
         ID
         {
-        if (reservedNames.contains($ID.text) && !table.containsKey("_" + $ID.text)) {
-            throw new NoSuchElementException("Line: " + getContext().start.getLine() +
-                                       ": variable _" + $ID.text + " wasn't assigned!");
-        }
-        if (!table.containsKey($ID.text)) {
-                    throw new NoSuchElementException("Line: " + getContext().start.getLine() +
-                                               ": variable " + $ID.text + " wasn't assigned!");
-        }
-        sout($ID.text);
+        exists($ID.text);
+        sout(getID($ID.text));
         })?
         (PLUS ID
         {
-        if (reservedNames.contains($ID.text) && !table.containsKey("_" + $ID.text)) {
-            throw new NoSuchElementException("Line: " + getContext().start.getLine() +
-                                       ": variable _" + $ID.text + " wasn't assigned!");
-        }
-        if (!table.containsKey($ID.text)) {
-                    throw new NoSuchElementException("Line: " + getContext().start.getLine() +
-                                               ": variable " + $ID.text + " wasn't assigned!");
-        }
-        sout(" + " + $ID.text);
+        exists($ID.text);
+        sout(" + " + getID($ID.text));
         }
         |
         PLUS STRING {sout(" + " + $STRING.text);})*
@@ -274,17 +250,18 @@ floatValue :
     // 1.0 + 2 - abc...
     (FL {sout($FL.text + "f");} | INT {sout($INT.text + "f");} | ID
     {
-    if (reservedNames.contains($ID.text) && !table.containsKey("_" + $ID.text)) {
-        throw new NoSuchElementException("Line: " + getContext().start.getLine() +
-                                   ": variable _" + $ID.text + " wasn't assigned!");
-    }
-    if (!table.containsKey($ID.text)) {
-                throw new NoSuchElementException("Line: " + getContext().start.getLine() +
-                                           ": variable " + $ID.text + " wasn't assigned!");
-    }
-    sout($ID.text);
+    exists($ID.text);
+    sout(getID($ID.text));
     })
-    (((s=PLUS|s=MINUS|s=MULT|s=MOD) (a=FL|a=INT|a=ID) {sout(" " + $s.text + " " + $a.text);} //TODO: тоже вставить проверку
+    (((s=PLUS|s=MINUS|s=MULT|s=MOD) (a=FL|a=INT|a=ID {exists($a.text);})
+    {
+        String a_id = $a.text;
+        if (!a_id.matches("[.0-9]+"))
+            a_id = getID(a_id);
+        else
+            a_id += "f";
+        sout(" " + $s.text + " " + a_id);
+    }
     |
     LBR {sout(" (");} (intValue | floatValue) RBR {sout(")");}
     ))*;
@@ -292,10 +269,28 @@ floatValue :
 
 intValue :
     // 1 + abc
-    (a=INT|a=ID) {sout($a.text);}
-    (((s=PLUS|s=MINUS|s=MULT|s=MOD) (a=INT|a=ID) {sout(" " + $s.text + " " + $a.text);}
+    (a=INT|a=ID {exists($a.text);})
+    {
+        String a_id = $a.text;
+        if (!a_id.matches("[.0-9]+"))
+            a_id = getID(a_id);
+        sout(a_id);
+    }
+    (((s=PLUS|s=MINUS|s=MULT|s=MOD) (b=INT|b=ID {exists($b.text);})
+    {
+        String b_id = $b.text;
+        if (!b_id.matches("[.0-9]+"))
+            b_id = getID(b_id);
+        sout(" " + $s.text + " " + b_id);
+    }
     |
-    (s=OR|s=AND|s=XOR) (a=INT|a=ID) {sout(" " + $s.text + " " + $a.text);}
+    (s=OR|s=AND|s=XOR) (b=INT|b=ID {exists($b.text);})
+    {
+        String b_id = $b.text;
+        if (!b_id.matches("[.0-9]+"))
+            b_id = getID(b_id);
+        sout(" " + $s.text + " " + b_id);
+    }
     |
     LBR {sout(" (");} intValue RBR {sout(")");}
     ))*;

@@ -3,6 +3,9 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 
 /**
@@ -27,5 +30,12 @@ public class Main
         System.out.println(prefixCodeGen);
         ParseTree tree = parser.startRule();
         System.out.println(suffixCodeGen);
+
+//        try {
+//            Files.write(Paths.get("myfile.txt"), "the text".getBytes(), StandardOpenOption.APPEND);
+//        }catch (IOException e) {
+//            //exception handling left as an exercise for the reader
+//        }
     }
 }
+
